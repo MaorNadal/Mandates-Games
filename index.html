@@ -30,6 +30,8 @@ button.s.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .w{color:#d64545}
 .lg{height:24px;width:auto;max-width:70px;object-fit:contain;background:#fff;border-radius:6px;padding:2px 5px;vertical-align:middle;margin-inline-end:6px;border:1px solid var(--bd)}
 td .lg{height:18px;max-width:46px;padding:1px 3px}
+.kp{display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border:2px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);font:inherit;margin:3px}.kp.on{border-color:var(--ac);background:var(--hi)}.kp img{margin:0}
+select{font:inherit;padding:7px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
 .bl{display:flex;gap:6px;flex-wrap:wrap}.bl div{flex:1;min-width:110px;border:1px solid var(--bd);border-radius:12px;padding:6px 8px;background:var(--card);font-size:.8rem;text-align:center}.bl b{display:block;font-size:1.25rem}
 .bd{display:inline-flex;width:22px;height:22px;border-radius:50%;color:#fff;font-size:.72rem;font-weight:700;align-items:center;justify-content:center;margin-inline-end:6px;vertical-align:middle}
 .wrap{overflow-x:auto}table{border-collapse:collapse;font-size:.85rem;width:100%}
@@ -42,7 +44,7 @@ details{margin-top:6px}summary{cursor:pointer}
 </style>
 </head>
 <body>
-<header><h1>🗳️ משחק המנדטים</h1><p>בחירות לכנסת ה־26 · נעילת ניחושים לפני 22:00</p></header>
+<header><h1>🗳️ משחק המנדטים</h1><p>בחירות לכנסת ה־26 · 27.10.2026</p><p id="lockb" style="margin-top:6px"></p><p id="conn" style="opacity:.85;font-size:.75rem;margin:2px 0 0"></p></header>
 
 <section id="a">
 <div class="card">
@@ -50,20 +52,22 @@ details{margin-top:6px}summary{cursor:pointer}
 <p><b>ניקוד = בסיס × יחס(k)</b>. בסיס: בול 10, הפרש מנדט 5, הפרש שניים 2. בונוס 10 על הגדולה ביותר.</p>
 <p><b>יחס(k) = (σ ÷ 1.7) · e<sup>(k − חציון)² ÷ 2σ²</sup></b>, תקרה ×25. זה בעצם ״1 חלקי ההסתברות״ של המספר: כל מנדט רחוק מהחציון מעלה את היחס, ומפלגה עם אי־ודאות גבוהה מתחילה מיחס גבוה יותר.</p>
 <p><b>σ = √[(0.35 · טווח הסקרים)² + (0.1 · חציון)² + 1.5²]</b></p>
-<p class="mu">חציון על 5 סקרים (קאן, 12, 13, 14, i24), מנורמל ל־120. מפלגה שעוברת רק בסקר אחד מחמישה: ניחוש 0 שווה ×1.25, ״עוברת״ (4+) שווה ×5 ומעלה. ערוץ 14 מאחד את הציונות הדתית עם זהות ואת חד״ש־תע״ל־בל״ד בשם ״משותפת״.</p>
+<p class="mu">חציון על 5 סקרים (כאן, 12, 13, 14, i24), מנורמל ל־120. מפלגה שעוברת רק בסקר אחד מחמישה: ניחוש 0 שווה ×1.25, ״עוברת״ (4+) שווה ×5 ומעלה. ערוץ 14 מאחד את הציונות הדתית עם זהות ואת חד״ש־תע״ל־בל״ד בשם ״משותפת״.</p>
 </div>
 <div id="ratios"></div>
+<div class="card" id="admcard"><h3>🔐 כניסת מנהל</h3><input id="admpw" type="password" placeholder="סיסמה" autocomplete="off"><button class="b" id="admgo">כניסה</button><p id="admst" class="mu"></p></div>
 </section>
 
 <section id="b" hidden>
 <div class="card"><h3>✍️ ניחוש חדש</h3>
-<input id="pn" placeholder="שם השחקן">
+<input id="pn" placeholder="שם השחקן" maxlength="30">
+<input id="pp" type="password" autocomplete="off" placeholder="קוד אישי (4 תווים ומעלה)" style="margin-top:6px" hidden><p class="mu" id="ppnote" style="margin:4px 0 0" hidden>הקוד האישי מאפשר לך לעדכן את הניחוש שלך מכל מכשיר עד 22:00. אף אחד אחר לא יכול לשנות אותו. שמור/י אותו.</p>
 <div class="tot" id="tot" style="margin-top:10px"></div><div id="blk" style="margin-bottom:8px"></div>
 <div id="gi"></div>
 <button class="s" id="rst">איפוס לחציון</button>
 <button class="b" id="add">שמירת ניחוש</button></div>
 <div id="pl"></div>
-<div class="card"><h3>📤 קוד הניחוש שלך</h3><p class="mu">אחרי השמירה אפשר להעתיק את הקוד ולשלוח למארגן בוואטסאפ.</p><textarea id="code" rows="2" readonly></textarea><button class="s" id="cp" style="margin-top:6px">העתקה</button>
+<div class="card" id="codeCard"><h3>📤 קוד הניחוש שלך</h3><p class="mu">אחרי השמירה אפשר להעתיק את הקוד ולשלוח למארגן בוואטסאפ.</p><textarea id="code" rows="2" readonly></textarea><button class="s" id="cp" style="margin-top:6px">העתקה</button>
 <h3 style="margin-top:14px">📥 ייבוא קודים (למארגן)</h3><textarea id="imp" rows="3" placeholder="הדביקו קוד אחד או כמה, שורה לכל שחקן"></textarea><button class="b" id="doimp">ייבוא</button></div>
 </section>
 
@@ -75,19 +79,31 @@ details{margin-top:6px}summary{cursor:pointer}
 </section>
 
 <section id="c" hidden>
-<div class="card"><h3>📋 תוצאות אמיתיות</h3><p class="mu">אפשר למלא חלקית, הניקוד מתעדכן מיד.</p><div id="ai" class="g"></div><div class="tot" id="asum" style="margin-top:10px"></div><div class="tot" id="bigp"></div><div id="rbl" style="margin-top:8px"></div></div>
+<div class="card"><h3>📋 תוצאות אמיתיות</h3><p class="mu" id="actnote"></p><div id="ai" class="g"></div><div class="tot" id="asum" style="margin-top:10px"></div><div class="tot" id="bigp"></div><div id="rbl" style="margin-top:8px"></div></div>
 <div class="card"><h3>🏆 טבלת ניקוד</h3><div id="lb"></div></div>
+</section>
+
+<section id="e" hidden>
+<div class="card"><h3>🏛️ בניית קואליציה</h3>
+<p class="mu">לחצו על מפלגות כדי להוסיף אותן. 61 מנדטים נדרשים לרוב. זה כלי עזר בלבד: הקמת ממשלה בפועל תלויה גם בהמלצות לנשיא, בהסכמים ובשיקולים נוספים.</p>
+<div style="margin-bottom:8px">מקור המנדטים: <select id="ksrc"><option value="auto">אוטומטי</option><option value="act">תוצאות אמת</option><option value="poll">חציון הסקרים</option><option value="avg">ממוצע ניחושי הקבוצה</option></select></div>
+<div id="hemi" style="color:var(--tx)"></div>
+<div class="tot" id="kst" style="text-align:center"></div>
+<div id="kch"></div>
+<div style="margin-top:8px"><button class="s" id="kcoal">גוש הקואליציה</button><button class="s" id="kopp">גוש האופוזיציה הציונית</button><button class="s" id="kclr">ניקוי</button></div>
+<p class="mu" id="knote"></p></div>
 </section>
 
 <nav>
 <button class="on" data-t="a"><span>📊</span>יחסים</button>
 <button data-t="b"><span>✍️</span>ניחוש</button>
 <button data-t="d"><span>🔍</span>השוואה</button>
+<button data-t="e"><span>🏛️</span>כנסת</button>
 <button data-t="c"><span>🏆</span>תוצאות</button>
 </nav>
 
 <script>
-const PN=['קאן','12','13','14','i24'];
+const PN=['כאן','12','13','14','i24'];
 const P=[
 {n:'הליכוד',p:[20,21,19,30,26]},{n:'ישר',p:[22,23,22,20,21]},{n:'ביחד',p:[14,15,14,10,12]},
 {n:'הדמוקרטים',p:[8,10,10,9,8]},{n:'הרשימה המשותפת',p:[9,9,9,8,9]},{n:'ש״ס',p:[7,8,7,10,8]},
@@ -101,7 +117,7 @@ const BONUS=10;
 const topOf=g=>{const m=Math.max(...g),ix=g.map((v,i)=>v==m?i:-1).filter(i=>i>=0);return ix.length==1?ix[0]:-1};
 function bonusOf(g){const ks=Object.keys(S.act).map(Number);if(!ks.length)return null;const m=Math.max(...ks.map(i=>S.act[i])),w=ks.filter(i=>S.act[i]==m);if(w.length!=1)return{v:0,prov:true,w:-1};const t=topOf(g);return{v:t==w[0]?BONUS:0,prov:ks.length<P.length,w:w[0]}}
 function blocRows(cols,has){const ac=blocSum(P.map((_,i)=>S.act[i]??0)),cs=cols.map(c=>blocSum(c.g));return BLOCS.map(([n],bi)=>`<tr><td>${n}</td>${has?`<td><b>${ac[bi][1]}</b></td>`:''}`+cs.map(x=>`<td>${x[bi][1]}</td>`).join('')+`</tr>`).join('')}
-function turnRow(cols,has){const a=S.tu;return `<tr><td>🗳️ אחוז הצבעה</td>${has?`<td><b>${a!==undefined?a+'%':'–'}</b></td>`:''}`+cols.map(c=>{const d=a!==undefined?Math.abs(c.tu-a):null,cl=d===null?'':d<=.25?'d0':d<=.5?'d1':d<=1?'d2':'dn';return `<td class="${cl}">${mode=='s'&&a!==undefined?n1(tpts(c.tu,a)):c.tu+'%'}</td>`}).join('')+`</tr>`}
+function turnRow(cols,has){const a=S.tu;return `<tr><td>🗳️ אחוז הצבעה</td>${has?`<td><b>${a!=null?a+'%':'–'}</b></td>`:''}`+cols.map(c=>{const d=a!=null&&c.tu!=null?Math.abs(c.tu-a):null,cl=d===null?'':d<=.25?'d0':d<=.5?'d1':d<=1?'d2':'dn';return `<td class="${cl}">${c.tu==null?'–':mode=='s'&&a!=null?n1(tpts(c.tu,a)):c.tu+'%'}</td>`}).join('')+`</tr>`}
 function bonusRow(cols,has){const b0=has?bonusOf(cols[0].g):null;const w=b0&&b0.w>=0?P[b0.w].n:'–';return `<tr><td>⭐ הגדולה (+${BONUS})</td>${has?`<td><b>${w}</b></td>`:''}`+cols.map(c=>{const t=topOf(c.g),b=has?bonusOf(c.g):null;return `<td class="${b?(b.v?'d0':'dn'):''}">${t<0?'תיקו':P[t].n}${b&&b.v?` +${b.v}`:''}${b&&b.prov?'*':''}</td>`}).join('')+`</tr>`}
 const BLOCS=[['גוש הקואליציה',['הליכוד','ש״ס','יהדות התורה','עוצמה יהודית','הציונות הדתית','עמך ישראל (וינטר)']],['גוש האופוזיציה הציונית',['ישר','ביחד','הדמוקרטים','ישראל ביתנו']],['מפלגות ערביות',['הרשימה המשותפת','רע״ם']],['המילואימניקים',['המילואימניקים']]];
 const blocSum=g=>BLOCS.map(([n,ms])=>[n,ms.reduce((s,m)=>s+(g[P.findIndex(p=>p.n==m)]||0),0)]);
@@ -123,12 +139,24 @@ const pts=(p,g,a)=>BASE(Math.abs(g-a))*R(p,g);
 const fmt=v=>v>=25?'25+':v.toFixed(1);
 const n1=v=>+v.toFixed(1);
 const $=id=>document.getElementById(id);
-let S={pl:[],act:{}},mode='g';
-try{const x=localStorage.getItem('mg1');if(x)S=JSON.parse(x)}catch(e){}
-const SEED=[],SEEDACT={};
-SEED.forEach(x=>{if(!S.pl.some(y=>y.n==x.n))S.pl.push(x)});
-if(!Object.keys(S.act).length&&Object.keys(SEEDACT).length)S.act={...SEEDACT};
-const save=()=>{try{localStorage.setItem('mg1',JSON.stringify(S))}catch(e){}};
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbym8J9Er_kN23vV4jh9vQDEqEZeC6fANPb3-O37pp3dBEtKnQFRuDYzlvjMNPDIv-ic/exec";
+const CLOUD = SCRIPT_URL.startsWith('https://');
+const DEADLINE = Date.UTC(2026,9,27,20,0,0);   // 22:00 שעון ישראל (UTC+2) ב־27.10.2026
+const TDEADLINE = Date.UTC(2026,9,27,18,0,0);  // 20:00 שעון ישראל
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let S={pl:[],act:{}},mode='g',isAdm=!CLOUD,ADM='',off=0,lastAdm=0,pt,filled=false,pL=null,pT=null,ME={};
+try{ME=JSON.parse(localStorage.getItem('mgme')||'{}')}catch(e){}
+if(!CLOUD){try{const x=localStorage.getItem('mg1');if(x)S=JSON.parse(x)}catch(e){}}
+const save=()=>{if(CLOUD)return;try{localStorage.setItem('mg1',JSON.stringify(S))}catch(e){}};
+const nowMs=()=>Date.now()+off,locked=()=>nowMs()>=DEADLINE,tlocked=()=>nowMs()>=TDEADLINE;
+async function api(action,data={}){const r=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...data})});return await r.json()}
+async function pull(){
+ if(!CLOUD)return;
+ try{const r=await fetch(SCRIPT_URL+'?t='+Date.now());const j=await r.json();if(!j.ok)throw 0;off=j.now-Date.now();S.pl=j.players;
+  if(!(isAdm&&Date.now()-lastAdm<6000)){S.act=j.act||{};if(j.tu==null)delete S.tu;else S.tu=j.tu;if(!isAdm)buildActual()}
+  if(!filled&&ME.n){const x=S.pl.find(y=>y.n==ME.n);if(x){fillForm(x);filled=true}}
+  $('conn').textContent='☁️ מחובר · מתעדכן אוטומטית';render();updLock()}
+ catch(e){$('conn').textContent='⚠️ אין חיבור לענן, מנסה שוב…'}}
 
 $('ratios').innerHTML=turnCard+P.map(p=>{
  const ks=p.t?[0,4,5,6,7,8,9,10]:Array.from({length:21},(_,i)=>p.c-10+i).filter(k=>k>=0&&!(k>0&&k<4));
@@ -138,59 +166,89 @@ $('ratios').innerHTML=turnCard+P.map(p=>{
 
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x==b));
- ['a','b','c','d'].forEach(t=>$(t).hidden=t!=b.dataset.t);window.scrollTo(0,0)});
+ ['a','b','c','d','e'].forEach(t=>$(t).hidden=t!=b.dataset.t);window.scrollTo(0,0)});
 
-// guess form with live potential points
 $('gi').innerHTML=P.map((p,i)=>`<div class="pr"><label for="g${i}">${B(p)}<b>${p.n}</b></label><input type="number" inputmode="numeric" min="0" max="120" id="g${i}" value="${p.c}"><div class="h" id="h${i}"></div></div>`).join('')+`<div class="pr"><label for="gt"><b>🗳️ אחוז הצבעה צפוי (%)</b></label><input type="number" step="0.1" min="0" max="100" id="gt" value="${TO.c}"><div class="h" id="ht"></div></div>`;
 function hints(){
  let s=0,mx=0;const tn=(t=>t<0?'תיקו':P[t].n)(topOf(P.map((_,i)=>+$('g'+i).value||0)));
  P.forEach((p,i)=>{const g=+$('g'+i).value||0,r=R(p,g);s+=g;mx+=10*r;
   $('h'+i).innerHTML=r==0?'<span class="w">לא אפשרי: מפלגה שעוברת מקבלת לפחות 4</span>':`יחס ×${fmt(r)} · בול <b>${n1(10*r)}</b> · ±1: ${n1(5*r)} · ±2: ${n1(2*r)}`});
- $('tot').innerHTML=`סה״כ מנדטים: <b class="${s==120?'':'w'}">${s}</b>/120${s==120?'':' (כדאי 120)'}<br>ניקוד מקסימלי אם הכל בול: <b>${n1(mx)}</b><br>⭐ הגדולה בניחוש שלך: <b>${tn}</b> (+${BONUS} אם צדקת)`;$('blk').innerHTML=blocHtml(P.map((_,i)=>+$('g'+i).value||0));$('add').disabled=s!=120;$('add').style.opacity=s==120?1:.45}
+ $('tot').innerHTML=`סה״כ מנדטים: <b class="${s==120?'':'w'}">${s}</b>/120${s==120?'':' (חייב להיות 120)'}<br>ניקוד מקסימלי אם הכל בול: <b>${n1(mx)}</b><br>⭐ הגדולה בניחוש שלך: <b>${tn}</b> (+${BONUS} אם צדקת)`;
+ $('blk').innerHTML=blocHtml(P.map((_,i)=>+$('g'+i).value||0));
+ const dis=locked()&&!isAdm;$('add').disabled=s!=120||dis;$('add').style.opacity=(s==120&&!dis)?1:.45}
 P.forEach((_,i)=>$('g'+i).oninput=hints);
 function thints(){const g=+$('gt').value;$('ht').innerHTML=isNaN(g)||g<=0?'':`בונוס עד <b>${n1(8*Math.min(TO.cap,Math.exp((g-TO.c)**2/(2*TO.s**2))))}</b> אם תפגע עד ±0.25`}
-$('gt').oninput=thints;thints();
+$('gt').oninput=thints;
+function fillForm(x){$('pn').value=x.n;P.forEach((_,i)=>$('g'+i).value=x.g[i]);$('gt').value=x.tu??TO.c;if(ME.n==x.n)$('pp').value=ME.p||'';thints();hints()}
 $('rst').onclick=()=>{P.forEach((p,i)=>$('g'+i).value=p.c);$('gt').value=TO.c;thints();hints()};
+
+// local-mode codes (hidden in cloud mode)
 const showCode=x=>{$('code').value=`MG1|${x.n}|${x.g.join(',')}|${x.tu}`};
 $('cp').onclick=async()=>{$('code').select();try{await navigator.clipboard.writeText($('code').value)}catch(e){try{document.execCommand('copy')}catch(e2){}}};
 $('doimp').onclick=()=>{let ok=0,bad=0;$('imp').value.split(/\n+/).map(l=>l.trim()).filter(Boolean).forEach(l=>{const m=l.match(/MG1\|([^|]+)\|([\d,\s]+)(?:\|([\d.]+))?/);if(!m){bad++;return}const g=m[2].split(',').map(Number);if(g.length!=P.length||g.some(v=>!Number.isInteger(v)||v<0)||g.reduce((a,b)=>a+b,0)!=120||P.some((p,i)=>g[i]>0&&g[i]<4)){bad++;return}const n=m[1].trim();S.pl=S.pl.filter(x=>x.n!=n);S.pl.push({n,g,tu:m[3]?+m[3]:TO.c});ok++});save();render();alert(`יובאו ${ok}, נדחו ${bad}`);if(ok)$('imp').value=''};
-$('add').onclick=()=>{const n=$('pn').value.trim();if(!n)return alert('חסר שם');const gs=P.map((_,i)=>+$('g'+i).value||0),sm=gs.reduce((a,b)=>a+b,0);if(gs.some(v=>v<0||!Number.isInteger(v)))return alert('רק מספרים שלמים, 0 ומעלה');if(sm!=120)return alert(`הסכום חייב להיות בדיוק 120 (כרגע ${sm})`);const bad=P.findIndex((p,i)=>gs[i]>0&&gs[i]<4);if(bad>=0)return alert(`${P[bad].n}: מפלגה שעוברת מקבלת לפחות 4 מנדטים`);
- S.pl=S.pl.filter(x=>x.n!=n);const tu=+$('gt').value;if(!(tu>0&&tu<=100))return alert('אחוז הצבעה לא תקין');S.pl.push({n,g:gs,tu});save();showCode({n,g:gs,tu});$('pn').value='';render();alert('נשמר! הקוד מוכן להעתקה למטה')};
-hints();
 
-// actual results
-$('ai').innerHTML=P.map((p,i)=>`<label>${B(p)}${p.n}</label><input type="number" inputmode="numeric" min="0" max="120" id="a${i}" value="${S.act[i]??''}">`).join('')+`<label><b>🗳️ אחוז הצבעה בפועל (%)</b></label><input type="number" step="0.1" id="at" value="${S.tu??''}">`;
-$('at').oninput=()=>{const v=$('at').value;if(v==='')delete S.tu;else S.tu=+v;save();render()};
-P.forEach((_,i)=>$('a'+i).oninput=()=>{const v=$('a'+i).value;if(v==='')delete S.act[i];else S.act[i]=+v;save();render()});
+$('add').onclick=async()=>{
+ const n=$('pn').value.trim().replace(/[<>&"']/g,'');if(!n)return alert('חסר שם');
+ if(locked()&&!isAdm)return alert('הניחושים ננעלו ב־22:00');
+ const gs=P.map((_,i)=>+$('g'+i).value||0),sm=gs.reduce((a,b)=>a+b,0);
+ if(gs.some(v=>v<0||!Number.isInteger(v)))return alert('רק מספרים שלמים, 0 ומעלה');
+ if(sm!=120)return alert(`הסכום חייב להיות בדיוק 120 (כרגע ${sm})`);
+ const bad=P.findIndex((p,i)=>gs[i]>0&&gs[i]<4);if(bad>=0)return alert(`${P[bad].n}: מפלגה שעוברת מקבלת לפחות 4 מנדטים`);
+ const tu=+$('gt').value;if(!(tu>0&&tu<=100))return alert('אחוז הצבעה לא תקין');
+ if(!CLOUD){S.pl=S.pl.filter(x=>x.n!=n);S.pl.push({n,g:gs,tu});save();showCode({n,g:gs,tu});render();return alert('נשמר! הקוד מוכן להעתקה למטה')}
+ const pin=$('pp').value.trim();if(!isAdm&&pin.length<4)return alert('קוד אישי: לפחות 4 תווים');
+ $('add').disabled=true;
+ try{const r=await api('save',{name:n,pin,g:gs,tu,password:ADM||undefined});
+  if(!r.ok)alert(r.error||'שגיאה');else{ME={n,p:pin};try{localStorage.setItem('mgme',JSON.stringify(ME))}catch(e){}filled=true;await pull();alert('נשמר בענן ☁️ אפשר לעדכן עד 22:00')}}
+ catch(e){alert('בעיית תקשורת, נסו שוב')}
+ hints()};
+
+function buildActual(){
+ $('ai').innerHTML=P.map((p,i)=>isAdm?`<label>${B(p)}${p.n}</label><input type="number" inputmode="numeric" min="0" max="120" id="a${i}" value="${S.act[i]??''}">`:`<label>${B(p)}${p.n}</label><b>${S.act[i]??'–'}</b>`).join('')+(isAdm?`<label><b>🗳️ אחוז הצבעה בפועל (%)</b></label><input type="number" step="0.1" id="at" value="${S.tu??''}">`:`<label><b>🗳️ אחוז הצבעה בפועל</b></label><b>${S.tu!=null?S.tu+'%':'–'}</b>`);
+ if(isAdm){$('at').oninput=()=>{const v=$('at').value;if(v==='')delete S.tu;else S.tu=+v;actChanged()};P.forEach((_,i)=>$('a'+i).oninput=()=>{const v=$('a'+i).value;if(v==='')delete S.act[i];else S.act[i]=+v;actChanged()})}
+ $('actnote').textContent=isAdm?(CLOUD?'מצב מנהל: ההזנה נשמרת בענן ומתעדכנת אצל כולם בלייב.':'אפשר למלא חלקית, הניקוד מתעדכן מיד.'):'התוצאות מוזנות על ידי המנהל ומתעדכנות כאן אוטומטית.'}
+function actChanged(){render();if(CLOUD){lastAdm=Date.now();clearTimeout(pt);pt=setTimeout(()=>api('setActual',{password:ADM,act:S.act,tu:S.tu??null}).catch(()=>{}),500)}else save()}
+
+// admin login
+function admUI(){$('admst').textContent=isAdm&&CLOUD?'✅ מצב מנהל פעיל':'';buildActual();render();updLock();hints()}
+$('admgo').onclick=async()=>{const pw=$('admpw').value;try{const r=await api('checkAdmin',{password:pw});if(r.ok){isAdm=true;ADM=pw;try{sessionStorage.setItem('mgadm',pw)}catch(e){}admUI()}else alert('סיסמה שגויה')}catch(e){alert('בעיית תקשורת')}};
+if(!CLOUD)$('admcard').hidden=true;
+if(CLOUD)$('codeCard').hidden=true;
+if(CLOUD){$('pp').hidden=false;$('ppnote').hidden=false}
+
+function updLock(){
+ const n=nowMs(),L=locked(),T=tlocked(),f=ms=>{const s=Math.max(0,Math.floor(ms/1000));return [s/3600|0,(s/60|0)%60,s%60].map(v=>String(v).padStart(2,'0')).join(':')};
+ $('lockb').innerHTML=L?'🔒 הניחושים ננעלו (22:00)':T?`🔒 אחוז ההצבעה ננעל · ניחושים ננעלים בעוד <b>${f(DEADLINE-n)}</b>`:`⏳ אחוז הצבעה ננעל בעוד <b>${f(TDEADLINE-n)}</b> · ניחושים בעוד <b>${f(DEADLINE-n)}</b>`;
+ const dis=L&&!isAdm;P.forEach((_,i)=>$('g'+i).disabled=dis);$('pn').disabled=dis;$('pp').disabled=dis;$('gt').disabled=(T&&!isAdm);
+ if(pL!==L||pT!==T){pL=L;pT=T;hints()}}
 
 function score(pl){
  let tot=0,dev=0,det=[],cnt=[0,0,0,0];
  P.forEach((p,i)=>{const a=S.act[i];if(a===undefined)return;const g=pl.g[i],d=Math.abs(g-a),x=pts(p,g,a);dev+=d;cnt[d>2?3:d]++;tot+=x;
   det.push(`${p.n}: ניחוש ${g}, בפועל ${a} → ${n1(x)}`)});
  const bb=bonusOf(pl.g);if(bb&&bb.v){tot+=bb.v;det.push(`⭐ בונוס הגדולה ביותר: +${bb.v}${bb.prov?' (זמני, לפי התוצאות שהוזנו)':''}`)}
- if(S.tu!==undefined&&pl.tu!==undefined){const tp=tpts(pl.tu,S.tu);tot+=tp;det.push(`🗳️ אחוז הצבעה: ניחוש ${pl.tu}%, בפועל ${S.tu}% → ${n1(tp)}`)}
+ if(S.tu!=null&&pl.tu!=null){const tp=tpts(pl.tu,S.tu);tot+=tp;det.push(`🗳️ אחוז הצבעה: ניחוש ${pl.tu}%, בפועל ${S.tu}% → ${n1(tp)}`)}
  return{tot,dev,det,cnt}}
 const maxPot=pl=>P.reduce((s,p,i)=>s+10*R(p,pl.g[i]),0);
 
 function render(){
- const rows=S.pl.map(pl=>({pl,...score(pl)})).sort((x,y)=>y.tot-x.tot||x.dev-y.dev);
+ renderK();const rows=S.pl.map(pl=>({pl,...score(pl)})).sort((x,y)=>y.tot-x.tot||x.dev-y.dev);
  const has=Object.keys(S.act).length>0,medal=['🥇','🥈','🥉'];
  const as=Object.keys(S.act).length,asum=Object.values(S.act).reduce((a,b)=>a+b,0);
  $('asum').innerHTML=`סה״כ מנדטים שהוזנו: <b class="${as<P.length||asum==120?'':'w'}">${asum}</b>/120 · ${as} מתוך ${P.length} מפלגות${as==P.length&&asum!=120?' – הסכום לא 120, כדאי לבדוק':''}`;
  const ks=Object.keys(S.act).map(Number),mxv=ks.length?Math.max(...ks.map(i=>S.act[i])):null,wn=ks.filter(i=>S.act[i]==mxv);
  $('bigp').innerHTML=!ks.length?'⭐ המפלגה הגדולה: עוד אין תוצאות':`⭐ המפלגה הגדולה: <b>${wn.length==1?B(P[wn[0]])+P[wn[0]].n+' ('+mxv+' מנדטים)':'תיקו בין '+wn.map(i=>P[i].n).join(' ו')}</b>${ks.length<P.length?' (זמני)':''}`;
- $('lb').innerHTML=rows.length?`<div class="wrap"><table><tr><th>שחקן</th><th>ניקוד</th><th>🎯 בול</th><th>קרוב ±1</th><th>אזור ±2</th><th>טעות</th></tr>`+rows.map((r,i)=>`<tr><td>${medal[i]||(i+1)+'.'} ${r.pl.n}</td><td><b>${n1(r.tot)}</b></td>${r.cnt.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')+`</table></div>`+rows.map(r=>`<details><summary>${r.pl.n}</summary><small>${r.det.join('<br>')||'עוד אין תוצאות'}</small></details>`).join(''):'<span class="mu">עוד אין שחקנים.</span>';
- $('pl').innerHTML=S.pl.length?`<div class="card"><h3>שחקנים שנשמרו (${S.pl.length})</h3>`+S.pl.map((x,i)=>`<div class="pl"><span><b>${x.n}</b> <small>· מקס׳ ${n1(maxPot(x))}</small></span><span><button class="s" data-e="${i}">עריכה</button><button class="s" data-d="${i}">מחיקה</button></span></div>`).join('')+`</div>`:'';
- document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(confirm('למחוק?')){S.pl.splice(+b.dataset.d,1);save();render()}});
- document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const x=S.pl[+b.dataset.e];$('pn').value=x.n;P.forEach((_,i)=>$('g'+i).value=x.g[i]);$('gt').value=x.tu??TO.c;thints();hints();window.scrollTo(0,0)});
+ $('lb').innerHTML=rows.length?`<div class="wrap"><table><tr><th>שחקן</th><th>ניקוד</th><th>🎯 בול</th><th>קרוב ±1</th><th>אזור ±2</th><th>טעות</th></tr>`+rows.map((r,i)=>`<tr><td>${medal[i]||(i+1)+'.'} ${esc(r.pl.n)}</td><td><b>${n1(r.tot)}</b></td>${r.cnt.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')+`</table></div>`+rows.map(r=>`<details><summary>${esc(r.pl.n)}</summary><small>${r.det.join('<br>')||'עוד אין תוצאות'}</small></details>`).join(''):'<span class="mu">עוד אין שחקנים.</span>';
+ $('pl').innerHTML=S.pl.length?`<div class="card"><h3>שחקנים שנשמרו (${S.pl.length})</h3>`+S.pl.map((x,i)=>`<div class="pl"><span><b>${esc(x.n)}</b> <small>· מקס׳ ${n1(maxPot(x))}</small></span><span>${(isAdm||!CLOUD||ME.n==x.n)?`<button class="s" data-e="${i}">עריכה</button>`:''}${isAdm?`<button class="s" data-d="${i}">מחיקה</button>`:''}</span></div>`).join('')+`</div>`:'';
+ document.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{const i=+b.dataset.d,n=S.pl[i].n;if(!confirm(`למחוק את ${n}?`))return;if(CLOUD){try{const r=await api('delete',{password:ADM,name:n});if(!r.ok)alert(r.error);await pull()}catch(e){alert('בעיית תקשורת')}}else{S.pl.splice(i,1);save();render()}});
+ document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{fillForm(S.pl[+b.dataset.e]);window.scrollTo(0,0)});
  $('rbl').innerHTML=Object.keys(S.act).length?blocHtml(P.map((_,i)=>S.act[i]??0))+(Object.keys(S.act).length<P.length?'<small>זמני: לפי התוצאות שהוזנו</small>':''):'';
- // comparison matrix
  const avg={n:'ממוצע הקבוצה',g:P.map((_,i)=>S.pl.length?Math.round(S.pl.reduce((s,x)=>s+x.g[i],0)/S.pl.length):0)};
  avg.tu=S.pl.length?+(S.pl.reduce((s,x)=>s+(x.tu??TO.c),0)/S.pl.length).toFixed(1):TO.c;
  const cols=S.pl.length?[...S.pl,avg]:[];
  $('cmpnote').textContent=mode=='g'?(has?'הצבע מראה כמה כל ניחוש קרוב לתוצאה: ירוק כהה בול, ירוק הפרש 1, צהוב הפרש 2.':'ברגע שתוזנה תוצאה, הצבעים יופיעו.'):(has?'ניקוד שהושג לכל מפלגה (עם היחס).':'עוד אין תוצאות: מוצג הניקוד שיקבל כל שחקן אם יפגע בול.');
  if(!cols.length){$('cmp').innerHTML='<span class="mu">עוד אין שחקנים.</span>';return}
- let h=`<table><tr><th>מפלגה</th>${has?'<th>בפועל</th>':''}${cols.map(c=>`<th>${c.n}</th>`).join('')}</tr>`;
+ let h=`<table><tr><th>מפלגה</th>${has?'<th>בפועל</th>':''}${cols.map(c=>`<th>${esc(c.n)}</th>`).join('')}</tr>`;
  P.forEach((p,i)=>{const a=S.act[i];
   h+=`<tr><td>${B(p)}${p.n}</td>${has?`<td><b>${a??'–'}</b></td>`:''}`+cols.map(c=>{const g=c.g[i];let cl='',tx=g;
    if(a!==undefined){const d=Math.abs(g-a);cl=d==0?'d0':d==1?'d1':d==2?'d2':'dn';if(mode=='s')tx=n1(pts(p,g,a))}
@@ -201,7 +259,39 @@ function render(){
    const sc=score(c);return `<td>${has?n1(sc.tot):n1(maxPot(c))+'*'}</td>`}).join('')+`</tr></tfoot></table>`;
  $('cmp').innerHTML=h}
 document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('on',x==b));render()});
-render();
+
+const KORD=['הרשימה המשותפת','רע״ם','ישר','ביחד','הדמוקרטים','ישראל ביתנו','המילואימניקים','עמך ישראל (וינטר)','הציונות הדתית','עוצמה יהודית','יהדות התורה','ש״ס','הליכוד'];
+const KROWS=[12,15,18,22,25,28];
+let ksel=new Set(),csrc='auto';
+function kSeats(){const hasA=Object.keys(S.act).length>0,m=csrc=='auto'?(hasA?'act':'poll'):csrc;
+ if(m=='act')return{m,v:P.map((_,i)=>S.act[i]??0)};
+ if(m=='avg')return{m,v:P.map((_,i)=>S.pl.length?Math.round(S.pl.reduce((s,x)=>s+x.g[i],0)/S.pl.length):0)};
+ return{m:'poll',v:P.map(p=>p.c)}}
+function renderK(){
+ const{m,v}=kSeats(),pos=[];
+ KROWS.forEach((n,k)=>{const r=70+k*18;for(let j=0;j<n;j++){const th=Math.PI-Math.PI*j/(n-1);pos.push({th,r,x:170+r*Math.cos(th),y:172-r*Math.sin(th)})}});
+ pos.sort((a,b)=>b.th-a.th||a.r-b.r);
+ let q=0,svg='',tot=0;
+ KORD.forEach(n=>{const pi=P.findIndex(p=>p.n==n),c=(BADGE[n]||['#777'])[0],on=ksel.has(pi);if(on)tot+=v[pi];
+  for(let s=0;s<v[pi]&&q<pos.length;s++,q++){const o=pos[q];svg+=`<circle cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="5.6" fill="${c}" opacity="${on?1:.2}"/>`}});
+ for(;q<pos.length;q++){const o=pos[q];svg+=`<circle cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="5.6" fill="#999" opacity=".12"/>`}
+ const ok=tot>=61;
+ $('hemi').innerHTML=`<svg viewBox="0 0 340 185" style="width:100%;max-width:520px;display:block;margin:auto">${svg}<text x="170" y="150" text-anchor="middle" font-size="34" font-weight="700" fill="currentColor">${tot}</text><text x="170" y="168" text-anchor="middle" font-size="11" style="fill:var(--mu)">מתוך 120 · רוב: 61</text></svg>`;
+ $('kst').innerHTML=ksel.size?(ok?`✅ יש רוב: <b>${tot}</b> מנדטים (${tot-61} מעל 61)`:`❌ חסרים <b>${61-tot}</b> מנדטים לרוב (יש ${tot})`):'בחרו מפלגות להרכבת קואליציה';
+ $('kch').innerHTML=KORD.map(n=>{const pi=P.findIndex(p=>p.n==n);return v[pi]>0?`<button class="kp${ksel.has(pi)?' on':''}" data-k="${pi}">${B(P[pi])}<b>${v[pi]}</b></button>`:''}).join('');
+ $('knote').textContent='מקור: '+(m=='act'?'תוצאות אמת'+(Object.keys(S.act).length<P.length?' (חלקיות, לפי מה שהוזן)':''):m=='avg'?'ממוצע ניחושי הקבוצה':'חציון הסקרים')+' · מפלגות עם 0 מנדטים לא מוצגות'}
+$('kch').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;const i=+b.dataset.k;ksel.has(i)?ksel.delete(i):ksel.add(i);renderK()};
+$('ksrc').onchange=()=>{csrc=$('ksrc').value;renderK()};
+const setBloc=bi=>{ksel=new Set(BLOCS[bi][1].map(n=>P.findIndex(p=>p.n==n)));renderK()};
+$('kcoal').onclick=()=>setBloc(0);$('kopp').onclick=()=>setBloc(1);$('kclr').onclick=()=>{ksel=new Set();renderK()};
+
+// init
+if(ME.n){$('pn').value=ME.n;$('pp').value=ME.p||''}
+buildActual();thints();hints();render();updLock();setInterval(updLock,1000);
+if(CLOUD){let sp='';try{sp=sessionStorage.getItem('mgadm')||''}catch(e){}
+ if(sp)api('checkAdmin',{password:sp}).then(r=>{if(r.ok){isAdm=true;ADM=sp;admUI()}}).catch(()=>{});
+ pull();setInterval(()=>{if(!document.hidden)pull()},8000)}
+else $('conn').textContent='מצב מקומי (ללא ענן)';
 </script>
 </body>
 </html>
