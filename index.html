@@ -49,7 +49,7 @@ details{margin-top:6px}summary{cursor:pointer}
 </style>
 </head>
 <body>
-<header><h1>🗳️ משחק המנדטים</h1><p>בחירות לכנסת ה־26 · 27.10.2026</p><p id="lockb" style="margin-top:6px"></p><p id="conn" style="opacity:.85;font-size:.75rem;margin:2px 0 0"></p></header>
+<header><h1>🗳️ משחק המנדטים</h1><p>בחירות לכנסת ה־26 · 27.10.2026</p><p id="lockb" style="margin-top:6px"></p><p id="provb" style="margin:4px 0 0;font-weight:700"></p><p id="conn" style="opacity:.85;font-size:.75rem;margin:2px 0 0"></p></header>
 
 <section id="a">
 <div class="card">
@@ -84,6 +84,7 @@ details{margin-top:6px}summary{cursor:pointer}
 </section>
 
 <section id="c" hidden>
+<div class="card" id="xcard" hidden><h3>📡 מדגמי יציאה (ניקוד זמני)</h3><p class="mu" id="xnote"></p><div id="xbody"></div></div>
 <div class="card"><h3>📋 תוצאות אמיתיות</h3><p class="mu" id="actnote"></p><div id="ai" class="g"></div><div class="tot" id="asum" style="margin-top:10px"></div><div class="tot" id="bigp"></div><div id="rbl" style="margin-top:8px"></div></div>
 <div class="card"><h3>🏆 טבלת ניקוד</h3><div id="lb"></div></div>
 </section>
@@ -107,7 +108,7 @@ details{margin-top:6px}summary{cursor:pointer}
 <div class="g" id="xcv"></div>
 <div class="g" style="margin-top:6px"><label>קולות למפלגות שלא עברו (אחר)</label><input id="xother" type="number" placeholder="0"></div>
 <div style="margin-top:8px"><b>הסכם עודפים:</b> <select id="pa"></select> + <select id="pb"></select> <button class="s" id="padd">הוספה</button></div>
-<div id="plist" style="margin:6px 0"></div><div id="xseatout"></div></div>
+<div id="plist" style="margin:6px 0"></div><div id="xseatout"></div><button class="b" id="xcopy" hidden>⬇️ העבר חלוקה זו לתוצאות האמת (מנהל)</button></div>
 <div class="card"><h3>📈 מד הפתעות: תוצאות מול חציון הסקרים</h3><div id="xsurp"></div></div>
 <div class="card" id="xadmcard" hidden><h3>🔧 נתוני מנהל</h3><p class="mu">הנתונים נשמרים בענן ומוצגים לכולם.</p><div id="xadm"></div></div>
 </section>
@@ -133,8 +134,8 @@ const BADGE={'הליכוד':['#1e6bd6','ל'],'ישר':['#0f9f9f','י'],'ביחד
 const B=p=>{if(LOGO[p.n])return `<img class="lg" alt="" src="${LOGO[p.n]}">`;const b=BADGE[p.n]||['#777','?'];return `<span class="bd" style="background:${b[0]}">${b[1]}</span>`};
 const BONUS=10;
 const topOf=g=>{const m=Math.max(...g),ix=g.map((v,i)=>v==m?i:-1).filter(i=>i>=0);return ix.length==1?ix[0]:-1};
-function bonusOf(g){const ks=Object.keys(S.act).map(Number);if(!ks.length)return null;const m=Math.max(...ks.map(i=>S.act[i])),w=ks.filter(i=>S.act[i]==m);if(w.length!=1)return{v:0,prov:true,w:-1};const t=topOf(g);return{v:t==w[0]?BONUS:0,prov:ks.length<P.length,w:w[0]}}
-function blocRows(cols,has){const ac=blocSum(P.map((_,i)=>S.act[i]??0)),cs=cols.map(c=>blocSum(c.g));return BLOCS.map(([n],bi)=>`<tr><td>${n}</td>${has?`<td><b>${ac[bi][1]}</b></td>`:''}`+cs.map(x=>`<td>${x[bi][1]}</td>`).join('')+`</tr>`).join('')}
+function bonusOf(g){const ks=Object.keys(ACT).map(Number);if(!ks.length)return null;const m=Math.max(...ks.map(i=>ACT[i])),w=ks.filter(i=>ACT[i]==m);if(w.length!=1)return{v:0,prov:true,w:-1};const t=topOf(g);return{v:t==w[0]?BONUS:0,prov:ks.length<P.length||!!PROV,w:w[0]}}
+function blocRows(cols,has){const ac=blocSum(P.map((_,i)=>ACT[i]??0)),cs=cols.map(c=>blocSum(c.g));return BLOCS.map(([n],bi)=>`<tr><td>${n}</td>${has?`<td><b>${ac[bi][1]}</b></td>`:''}`+cs.map(x=>`<td>${x[bi][1]}</td>`).join('')+`</tr>`).join('')}
 function turnRow(cols,has){const a=S.tu;return `<tr><td>🗳️ אחוז הצבעה</td>${has?`<td><b>${a!=null?a+'%':'–'}</b></td>`:''}`+cols.map(c=>{const d=a!=null&&c.tu!=null?Math.abs(c.tu-a):null,cl=d===null?'':d<=.25?'d0':d<=.5?'d1':d<=1?'d2':'dn';return `<td class="${cl}">${c.tu==null?'–':mode=='s'&&a!=null?n1(tpts(c.tu,a)):c.tu+'%'}</td>`}).join('')+`</tr>`}
 function bonusRow(cols,has){const b0=has?bonusOf(cols[0].g):null;const w=b0&&b0.w>=0?P[b0.w].n:'–';return `<tr><td>⭐ הגדולה (+${BONUS})</td>${has?`<td><b>${w}</b></td>`:''}`+cols.map(c=>{const t=topOf(c.g),b=has?bonusOf(c.g):null;return `<td class="${b?(b.v?'d0':'dn'):''}">${t<0?'תיקו':P[t].n}${b&&b.v?` +${b.v}`:''}${b&&b.prov?'*':''}</td>`}).join('')+`</tr>`}
 const BLOCS=[['גוש הקואליציה',['הליכוד','ש״ס','יהדות התורה','עוצמה יהודית','הציונות הדתית','עמך ישראל (וינטר)']],['גוש האופוזיציה הציונית',['ישר','ביחד','הדמוקרטים','ישראל ביתנו']],['מפלגות ערביות',['הרשימה המשותפת','רע״ם']],['המילואימניקים',['המילואימניקים']]];
@@ -162,6 +163,7 @@ const CLOUD = SCRIPT_URL.startsWith('https://');
 const DEADLINE = Date.UTC(2026,9,27,20,0,0);   // 22:00 שעון ישראל (UTC+2) ב־27.10.2026
 const TDEADLINE = Date.UTC(2026,9,27,18,0,0);  // 20:00 שעון ישראל
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let ACT={},PROV=null,pulled=false,lastCalc=null;
 let S={pl:[],act:{}},mode='g',isAdm=!CLOUD,ADM='',off=0,lastAdm=0,pt,filled=false,pL=null,pT=null,ME={};
 try{ME=JSON.parse(localStorage.getItem('mgme')||'{}')}catch(e){}
 if(!CLOUD){try{const x=localStorage.getItem('mg1');if(x)S=JSON.parse(x)}catch(e){}}
@@ -173,6 +175,7 @@ async function pull(){
  try{const r=await fetch(SCRIPT_URL+'?t='+Date.now());const j=await r.json();if(!j.ok)throw 0;off=j.now-Date.now();S.pl=j.players;
   if(!(isAdm&&Date.now()-lastAdm<6000)){S.ex=j.ex||{};S.act=j.act||{};if(j.tu==null)delete S.tu;else S.tu=j.tu;if(!isAdm)buildActual()}
   if(!filled&&ME.n){const x=S.pl.find(y=>y.n==ME.n);if(x){fillForm(x);filled=true}}
+  if(!pulled){pulled=true;if(isAdm){buildXAdm();buildExit()}}
   $('conn').textContent='☁️ מחובר · מתעדכן אוטומטית';render();updLock()}
  catch(e){$('conn').textContent='⚠️ אין חיבור לענן, מנסה שוב…'}}
 
@@ -228,7 +231,7 @@ function buildActual(){
 function actChanged(){render();if(CLOUD){lastAdm=Date.now();clearTimeout(pt);pt=setTimeout(()=>api('setActual',{password:ADM,act:S.act,tu:S.tu??null,ex:S.ex||{}}).catch(()=>{}),500)}else save()}
 
 // admin login
-function admUI(){buildXAdm();$('admst').textContent=isAdm&&CLOUD?'✅ מצב מנהל פעיל':'';buildActual();render();updLock();hints()}
+function admUI(){buildXAdm();buildExit();$('admst').textContent=isAdm&&CLOUD?'✅ מצב מנהל פעיל':'';buildActual();render();updLock();hints()}
 $('admgo').onclick=async()=>{const pw=$('admpw').value;try{const r=await api('checkAdmin',{password:pw});if(r.ok){isAdm=true;ADM=pw;try{sessionStorage.setItem('mgadm',pw)}catch(e){}admUI()}else alert('סיסמה שגויה')}catch(e){alert('בעיית תקשורת')}};
 if(!CLOUD)$('admcard').hidden=true;
 if(CLOUD)$('codeCard').hidden=true;
@@ -241,20 +244,19 @@ function updLock(){
  if(pL!==L||pT!==T){pL=L;pT=T;hints()}}
 
 function score(pl){
- let tot=0,dev=0,det=[],cnt=[0,0,0,0];
- P.forEach((p,i)=>{const a=S.act[i];if(a===undefined)return;const g=pl.g[i],d=Math.abs(g-a),x=pts(p,g,a);dev+=d;cnt[d>2?3:d]++;tot+=x;
-  det.push(`${p.n}: ניחוש ${g}, בפועל ${a} → ${n1(x)}`)});
- const bb=bonusOf(pl.g);if(bb&&bb.v){tot+=bb.v;det.push(`⭐ בונוס הגדולה ביותר: +${bb.v}${bb.prov?' (זמני, לפי התוצאות שהוזנו)':''}`)}
+ let tot=0,dev=0,det=[],cnt=[0,0,0,0],items=[];
+ P.forEach((p,i)=>{const a=ACT[i];if(a===undefined)return;const g=pl.g[i],d=Math.abs(g-a),x=pts(p,g,a);dev+=d;cnt[d>2?3:d]++;tot+=x;items.push({p,g,a,x,d})});
+ const bb=bonusOf(pl.g);if(bb&&bb.v){tot+=bb.v;det.push(`⭐ בונוס הגדולה ביותר: +${bb.v}${bb.prov?' (זמני)':''}`)}
  if(S.tu!=null&&pl.tu!=null){const tp=tpts(pl.tu,S.tu);tot+=tp;det.push(`🗳️ אחוז הצבעה: ניחוש ${pl.tu}%, בפועל ${S.tu}% → ${n1(tp)}`)}
- return{tot,dev,det,cnt}}
+ return{tot,dev,det,cnt,items}}
 const maxPot=pl=>P.reduce((s,p,i)=>s+10*R(p,pl.g[i]),0);
 
 function render(){
- renderK();renderX();const rows=S.pl.map(pl=>({pl,...score(pl)})).sort((x,y)=>y.tot-x.tot||x.dev-y.dev);
- const has=Object.keys(S.act).length>0,medal=['🥇','🥈','🥉'];
- const as=Object.keys(S.act).length,asum=Object.values(S.act).reduce((a,b)=>a+b,0);
+ setACT();exitCard();$('provb').textContent=PROV?'⚡ ניקוד זמני לפי '+(PROV=='avg'?'ממוצע מדגמי היציאה':(CH.find(c=>c[0]==PROV)||[0,PROV])[1]):'';renderK();renderX();const rows=S.pl.map(pl=>({pl,...score(pl)})).sort((x,y)=>y.tot-x.tot||x.dev-y.dev);
+ const has=Object.keys(ACT).length>0,medal=['🥇','🥈','🥉'];
+ const as=Object.keys(ACT).length,asum=Object.values(ACT).reduce((a,b)=>a+b,0);
  $('asum').innerHTML=`סה״כ מנדטים שהוזנו: <b class="${as<P.length||asum==120?'':'w'}">${asum}</b>/120 · ${as} מתוך ${P.length} מפלגות${as==P.length&&asum!=120?' – הסכום לא 120, כדאי לבדוק':''}`;
- const ks=Object.keys(S.act).map(Number),mxv=ks.length?Math.max(...ks.map(i=>S.act[i])):null,wn=ks.filter(i=>S.act[i]==mxv);
+ const ks=Object.keys(ACT).map(Number),mxv=ks.length?Math.max(...ks.map(i=>ACT[i])):null,wn=ks.filter(i=>ACT[i]==mxv);
  $('bigp').innerHTML=!ks.length?'⭐ המפלגה הגדולה: עוד אין תוצאות':`⭐ המפלגה הגדולה: <b>${wn.length==1?B(P[wn[0]])+P[wn[0]].n+' ('+mxv+' מנדטים)':'תיקו בין '+wn.map(i=>P[i].n).join(' ו')}</b>${ks.length<P.length?' (זמני)':''}`;
  const topS=rows.length?Math.max(rows[0].tot,1):1;
  $('lb').innerHTML=rows.length?`<div class="pod">${[1,0,2].map(k=>rows[k]?`<div class="pc p${k}"><div class="md">${medal[k]}</div><div class="pn">${esc(rows[k].pl.n)}</div><div class="pp">${n1(rows[k].tot)}</div></div>`:'').join('')}</div>`+
@@ -262,14 +264,14 @@ function render(){
  $('pl').innerHTML=S.pl.length?`<div class="card"><h3>שחקנים שנשמרו (${S.pl.length})</h3>`+S.pl.map((x,i)=>`<div class="pl"><span><b>${esc(x.n)}</b> <small>· מקס׳ ${n1(maxPot(x))}</small></span><span>${(isAdm||!CLOUD||ME.n==x.n)?`<button class="s" data-e="${i}">עריכה</button>`:''}${isAdm?`<button class="s" data-d="${i}">מחיקה</button>`:''}</span></div>`).join('')+`</div>`:'';
  document.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{const i=+b.dataset.d,n=S.pl[i].n;if(!confirm(`למחוק את ${n}?`))return;if(CLOUD){try{const r=await api('delete',{password:ADM,name:n});if(!r.ok)alert(r.error);await pull()}catch(e){alert('בעיית תקשורת')}}else{S.pl.splice(i,1);save();render()}});
  document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{fillForm(S.pl[+b.dataset.e]);window.scrollTo(0,0)});
- $('rbl').innerHTML=Object.keys(S.act).length?blocHtml(P.map((_,i)=>S.act[i]??0))+(Object.keys(S.act).length<P.length?'<small>זמני: לפי התוצאות שהוזנו</small>':''):'';
+ $('rbl').innerHTML=Object.keys(ACT).length?blocHtml(P.map((_,i)=>ACT[i]??0))+(Object.keys(ACT).length<P.length?'<small>זמני: לפי התוצאות שהוזנו</small>':''):'';
  const avg={n:'ממוצע הקבוצה',g:P.map((_,i)=>S.pl.length?Math.round(S.pl.reduce((s,x)=>s+x.g[i],0)/S.pl.length):0)};
  avg.tu=S.pl.length?+(S.pl.reduce((s,x)=>s+(x.tu??TO.c),0)/S.pl.length).toFixed(1):TO.c;
  const cols=S.pl.length?[...S.pl,avg]:[];
  $('cmpnote').textContent=mode=='g'?(has?'הצבע מראה כמה כל ניחוש קרוב לתוצאה: ירוק כהה בול, ירוק הפרש 1, צהוב הפרש 2.':'ברגע שתוזנה תוצאה, הצבעים יופיעו.'):(has?'ניקוד שהושג לכל מפלגה (עם היחס).':'עוד אין תוצאות: מוצג הניקוד שיקבל כל שחקן אם יפגע בול.');
  if(!cols.length){$('cmp').innerHTML='<span class="mu">עוד אין שחקנים.</span>';return}
  let h=`<table><tr><th>מפלגה</th>${has?'<th>בפועל</th>':''}${cols.map(c=>`<th>${esc(c.n)}</th>`).join('')}</tr>`;
- P.forEach((p,i)=>{const a=S.act[i];
+ P.forEach((p,i)=>{const a=ACT[i];
   h+=`<tr><td>${B(p)}${p.n}</td>${has?`<td><b>${a??'–'}</b></td>`:''}`+cols.map(c=>{const g=c.g[i];let cl='',tx=g;
    if(a!==undefined){const d=Math.abs(g-a);cl=d==0?'d0':d==1?'d1':d==2?'d2':'dn';if(mode=='s')tx=n1(pts(p,g,a))}
    else if(mode=='s')tx=n1(10*R(p,g))+'<small>*</small>';
@@ -283,8 +285,8 @@ document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m
 const KORD=['הרשימה המשותפת','רע״ם','ישר','ביחד','הדמוקרטים','ישראל ביתנו','המילואימניקים','עמך ישראל (וינטר)','הציונות הדתית','עוצמה יהודית','יהדות התורה','ש״ס','הליכוד'];
 const KROWS=[12,15,18,22,25,28];
 let ksel=new Set(),csrc='auto';
-function kSeats(){const hasA=Object.keys(S.act).length>0,m=csrc=='auto'?(hasA?'act':'poll'):csrc;
- if(m=='act')return{m,v:P.map((_,i)=>S.act[i]??0)};
+function kSeats(){const hasA=Object.keys(ACT).length>0,m=csrc=='auto'?(hasA?'act':'poll'):csrc;
+ if(m=='act')return{m,v:P.map((_,i)=>ACT[i]??0)};
  if(m=='avg')return{m,v:P.map((_,i)=>S.pl.length?Math.round(S.pl.reduce((s,x)=>s+x.g[i],0)/S.pl.length):0)};
  return{m:'poll',v:P.map(p=>p.c)}}
 function renderK(){
@@ -299,12 +301,33 @@ function renderK(){
  $('hemi').innerHTML=`<svg viewBox="0 0 340 185" style="width:100%;max-width:520px;display:block;margin:auto">${svg}<text x="170" y="150" text-anchor="middle" font-size="34" font-weight="700" fill="currentColor">${tot}</text><text x="170" y="168" text-anchor="middle" font-size="11" style="fill:var(--mu)">מתוך 120 · רוב: 61</text></svg>`;
  $('kst').innerHTML=ksel.size?(ok?`✅ יש רוב: <b>${tot}</b> מנדטים (${tot-61} מעל 61)`:`❌ חסרים <b>${61-tot}</b> מנדטים לרוב (יש ${tot})`):'בחרו מפלגות להרכבת קואליציה';
  $('kch').innerHTML=KORD.map(n=>{const pi=P.findIndex(p=>p.n==n);return v[pi]>0?`<button class="kp${ksel.has(pi)?' on':''}" data-k="${pi}">${B(P[pi])}<b>${v[pi]}</b></button>`:''}).join('');
- $('knote').textContent='מקור: '+(m=='act'?'תוצאות אמת'+(Object.keys(S.act).length<P.length?' (חלקיות, לפי מה שהוזן)':''):m=='avg'?'ממוצע ניחושי הקבוצה':'חציון הסקרים')+' · מפלגות עם 0 מנדטים לא מוצגות'}
+ $('knote').textContent='מקור: '+(m=='act'?(PROV?'מדגם יציאה (זמני)':'תוצאות אמת')+(Object.keys(ACT).length<P.length?' (חלקיות, לפי מה שהוזן)':''):m=='avg'?'ממוצע ניחושי הקבוצה':'חציון הסקרים')+' · מפלגות עם 0 מנדטים לא מוצגות'}
 $('kch').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;const i=+b.dataset.k;ksel.has(i)?ksel.delete(i):ksel.add(i);renderK()};
 $('ksrc').onchange=()=>{csrc=$('ksrc').value;renderK()};
 const setBloc=bi=>{ksel=new Set(BLOCS[bi][1].map(n=>P.findIndex(p=>p.n==n)));renderK()};
 $('kcoal').onclick=()=>setBloc(0);$('kopp').onclick=()=>setBloc(1);$('kclr').onclick=()=>{ksel=new Set();renderK()};
 
+// ===== exit polls =====
+const CH=[['ch12','ערוץ 12'],['ch13','ערוץ 13'],['kan','כאן 11'],['c14','ערוץ 14']];
+function exitAct(){
+ const sel=S.ex?.xsel;if(!sel)return null;const ex=S.ex.exit||{};const has=k=>ex[k]&&Object.keys(ex[k]).length>0;
+ if(sel!='avg')return has(sel)?{...ex[sel]}:null;
+ const ks=CH.map(c=>c[0]).filter(has);if(!ks.length)return null;
+ const raw=P.map((_,i)=>sum(ks.map(k=>+ex[k][i]||0))/ks.length),fl=raw.map(Math.floor);let left=120-sum(fl);
+ raw.map((v,i)=>[v-fl[i],i]).filter(x=>x[0]>0).sort((a,b)=>b[0]-a[0]).slice(0,Math.max(0,left)).forEach(([,i])=>fl[i]++);
+ const o={};fl.forEach((v,i)=>o[i]=v);return o}
+function setACT(){const real=S.act,full=Object.keys(real).length>=P.length,ea=exitAct();if(ea&&!full){ACT=ea;PROV=S.ex.xsel}else{ACT=real;PROV=null}}
+function exitCard(){
+ $('xcard').hidden=!(isAdm||PROV);
+ $('xnote').textContent=PROV?'הניקוד כרגע זמני לפי מדגם יציאה. ברגע שכל תוצאות האמת יוזנו הן יחליפו אותו אוטומטית.':(isAdm?'הזינו מנדטים ממדגמי היציאה ובחרו מקור לניקוד זמני. כשכל 13 תוצאות האמת מוזנות, הן גוברות אוטומטית.':'');
+ if(!isAdm)$('xbody').innerHTML=PROV?`<div class="bl">${P.map((p,i)=>ACT[i]>0?`<div>${B(p)}<b>${ACT[i]}</b></div>`:'').join('')}</div>`:''}
+function buildExit(){
+ if(!isAdm)return;
+ $('xbody').innerHTML=`<div>מקור לניקוד זמני: <select id="xsel"><option value="">ללא</option>${CH.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join('')}<option value="avg">ממוצע המדגמים</option></select></div>`+
+ CH.map(([k,n])=>`<details style="margin-top:6px"><summary><b>${n}</b></summary><div class="g">${P.map((p,i)=>`<label>${B(p)}${p.n}</label><input type="number" id="e_${k}_${i}" value="${S.ex.exit?.[k]?.[i]??''}">`).join('')}</div></details>`).join('');
+ $('xsel').value=S.ex.xsel||'';$('xsel').onchange=()=>{S.ex.xsel=$('xsel').value;exChanged()};
+ CH.forEach(([k])=>P.forEach((_,i)=>{$(`e_${k}_${i}`).oninput=()=>{const v=$(`e_${k}_${i}`).value;S.ex.exit=S.ex.exit||{};S.ex.exit[k]=S.ex.exit[k]||{};if(v==='')delete S.ex.exit[k][i];else S.ex.exit[k][i]=+v;exChanged()}}))}
+$('xcopy').onclick=()=>{if(!lastCalc||!confirm('להחליף את תוצאות האמת בחלוקה שחושבה במחשבון?'))return;P.forEach((_,i)=>{S.act[i]=lastCalc.s[i]??0});buildActual();actChanged()};
 // ===== Knesset extras =====
 const EL0=7331981,HRS=[10,12,14,16,18,20,22,23],DEF26={10:16.68},CNT22={10:1076076,12:1925393,14:2638581,16:3224350,18:3919367,20:4498410,22:4794593};
 const HIST=[['2026',null],['2022',{10:15.9,12:28.4,14:38.9,16:47.5,18:57.7,20:66.3,22:70.6}],['2021',{10:14.8,12:25.4,20:60.9}],['2020',{20:65.6}],['ספט׳ 2019',{20:63.7}],['אפר׳ 2019',{20:61.3}]];
@@ -360,18 +383,18 @@ function renderX(){
  const vs=P.map((_,i)=>{const t=$('cv'+i).value;if(t!=='')return +t;if(S.ex.votes?.[i]!=null)return S.ex.votes[i];return Math.round(src[i]*vEst/120)});
  P.forEach((_,i)=>{$('cv'+i).placeholder=String(vs[i])});
  const tot=sum(vs)+(+$('xother').value||0),thr=S.ex.thrVotes||Math.ceil(tot*thrp/100);
- const r=bader(vs,thr,pairs);
+ const r=bader(vs,thr,pairs);lastCalc=r;$('xcopy').hidden=!isAdm;
  $('plist').innerHTML=pairs.map((p,i)=>`<span class="kp">${P[p[0]].n} + ${P[p[1]].n} <button class="s" data-x="${i}">✕</button></span>`).join('')||'<small>אין הסכמי עודפים</small>';
  $('xseatout').innerHTML=`<small>מכסה (קולות למנדט): ${nf(r.q)} · סף: ${nf(thr)} קולות</small><div class="wrap"><table><tr><th>מפלגה</th><th>קולות</th><th>עברה?</th><th>מנדטים</th><th>מקור</th></tr>`+
   P.map((p,i)=>`<tr><td>${B(p)}${p.n}</td><td>${nf(vs[i])}</td><td>${r.pass[i]?'✔':'✘'}</td><td><b>${r.s[i]??0}</b></td><td>${src[i]}</td></tr>`).join('')+`</table></div>`;
  // surprise meter
- const ks=Object.keys(S.act).map(Number);
- $('xsurp').innerHTML=ks.length?`<div class="wrap"><table><tr><th>מפלגה</th><th>חציון סקרים</th><th>בפועל</th><th>הפרש</th></tr>`+ks.sort((a,b)=>Math.abs(S.act[b]-(P[b].c))-Math.abs(S.act[a]-(P[a].c))).map(i=>{const d=S.act[i]-P[i].c;return `<tr><td>${B(P[i])}${P[i].n}</td><td>${P[i].c}</td><td><b>${S.act[i]}</b></td><td class="${d==0?'d0':Math.abs(d)<=1?'d1':Math.abs(d)<=2?'d2':'dn'}">${d>0?'▲ +':d<0?'▼ ':''}${d}</td></tr>`}).join('')+`</table></div>`:'<span class="mu">יופיע כשיוזנו תוצאות.</span>'}
+ const ks=Object.keys(ACT).map(Number);
+ $('xsurp').innerHTML=ks.length?`<div class="wrap"><table><tr><th>מפלגה</th><th>חציון סקרים</th><th>בפועל</th><th>הפרש</th></tr>`+ks.sort((a,b)=>Math.abs(ACT[b]-(P[b].c))-Math.abs(ACT[a]-(P[a].c))).map(i=>{const d=ACT[i]-P[i].c;return `<tr><td>${B(P[i])}${P[i].n}</td><td>${P[i].c}</td><td><b>${ACT[i]}</b></td><td class="${d==0?'d0':Math.abs(d)<=1?'d1':Math.abs(d)<=2?'d2':'dn'}">${d>0?'▲ +':d<0?'▼ ':''}${d}</td></tr>`}).join('')+`</table></div>`:'<span class="mu">יופיע כשיוזנו תוצאות.</span>'}
 buildCalc();
 
 // init
 if(ME.n){$('pn').value=ME.n;$('pp').value=ME.p||''}
-buildActual();buildXAdm();thints();hints();render();updLock();setInterval(updLock,1000);
+buildActual();buildXAdm();buildExit();thints();hints();render();updLock();setInterval(updLock,1000);
 if(CLOUD){let sp='';try{sp=sessionStorage.getItem('mgadm')||''}catch(e){}
  if(sp)api('checkAdmin',{password:sp}).then(r=>{if(r.ok){isAdm=true;ADM=sp;admUI()}}).catch(()=>{});
  pull();setInterval(()=>{if(!document.hidden)pull()},8000)}
