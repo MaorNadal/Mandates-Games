@@ -165,7 +165,7 @@ const $=id=>document.getElementById(id);
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbym8J9Er_kN23vV4jh9vQDEqEZeC6fANPb3-O37pp3dBEtKnQFRuDYzlvjMNPDIv-ic/exec";
 const CLOUD = SCRIPT_URL.startsWith('https://');
 const DEADLINE = Date.UTC(2026,9,27,20,0,0);   // 22:00 שעון ישראל (UTC+2) ב־27.10.2026
-const TDEADLINE = Date.UTC(2026,9,27,18,0,0);  // 20:00 שעון ישראל
+const TDEADLINE = Date.UTC(2026,9,27,20,0,0);  // 22:00 שעון ישראל
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let ACT={},PROV=null,pulled=false,lastCalc=null;
 let S={pl:[],act:{}},mode='g',isAdm=!CLOUD,ADM='',off=0,lastAdm=0,pt,filled=false,pL=null,pT=null,ME={};
@@ -261,7 +261,7 @@ if(CLOUD){$('pp').hidden=false;$('ppnote').hidden=false}
 
 function updLock(){
  const n=nowMs(),L=locked(),T=tlocked(),f=ms=>{const s=Math.max(0,Math.floor(ms/1000));return [s/3600|0,(s/60|0)%60,s%60].map(v=>String(v).padStart(2,'0')).join(':')};
- $('lockb').innerHTML=L?'🔒 הניחושים ננעלו (22:00)':T?`🔒 אחוז ההצבעה ננעל · ניחושים ננעלים בעוד <b>${f(DEADLINE-n)}</b>`:`⏳ אחוז הצבעה ננעל בעוד <b>${f(TDEADLINE-n)}</b> · ניחושים בעוד <b>${f(DEADLINE-n)}</b>`;
+ $('lockb').innerHTML=L?'🔒 הניחושים ננעלו (22:00)':T?`🔒 אחוז ההצבעה ננעל · ניחושים ננעלים בעוד <b>${f(DEADLINE-n)}</b>`:(TDEADLINE==DEADLINE?`⏳ הניחושים ואחוז ההצבעה ננעלים בעוד <b>${f(DEADLINE-n)}</b>`:`⏳ אחוז הצבעה ננעל בעוד <b>${f(TDEADLINE-n)}</b> · ניחושים בעוד <b>${f(DEADLINE-n)}</b>`);
  const dis=L&&!isAdm;P.forEach((_,i)=>$('g'+i).disabled=dis);$('pn').disabled=dis;$('pp').disabled=dis;$('gt').disabled=(T&&!isAdm);
  if(pL!==L||pT!==T){pL=L;pT=T;hints()}}
 
