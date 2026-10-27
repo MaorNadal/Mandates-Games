@@ -323,7 +323,7 @@ function setOpts(sel,opts,cur){const html=opts.map(([v,t])=>`<option value="${es
 function updSrcs(){
  const prev=csel;csel=setOpts($('csrc'),[['act',PROV?'תוצאות (כרגע זמניות לפי מדגם)':'תוצאות אמת'],...exKeys().map(k=>[k,srcName(k)])],csel);
  if(prev!=csel)renderCmp();
- const kp=csrc;csrc=setOpts($('ksrc'),[['auto','אוטומטי'],['act','תוצאות אמת'],['poll','חציון הסקרים'],['avg','ממוצע ניחושי הקבוצה'],['me','הניחוש שלי (מהטופס)'],...S.pl.map(x=>['pl:'+x.n,'ניחוש של '+x.n])],csrc);
+ const kp=csrc;csrc=setOpts($('ksrc'),[['auto','אוטומטי'],['act','תוצאות אמת'],['poll','חציון הסקרים'],['avg','ממוצע ניחושי הקבוצה'],['me','הניחוש שלי (מהטופס)'],...exKeys().map(k=>['x:'+k,'📡 מדגם: '+srcName(k)]),...S.pl.map(x=>['pl:'+x.n,'ניחוש של '+x.n])],csrc);
  if(kp!=csrc)renderK()}
 $('csrc').onchange=()=>{csel=$('csrc').value;renderCmp()};
 document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('on',x==b));render()});
@@ -333,6 +333,7 @@ const KROWS=[12,15,18,22,25,28];
 let ksel=new Set(),csrc='auto';
 function kSeats(){const hasA=Object.keys(ACT).length>0,m=csrc=='auto'?(hasA?'act':'poll'):csrc;
  if(m=='me')return{m,v:P.map((_,i)=>+$('g'+i).value||0)};
+ if(m.startsWith('x:')){const e=exitMap(m.slice(2));if(e)return{m,v:P.map((_,i)=>+e[i]||0)}}
  if(m.startsWith('pl:')){const x=S.pl.find(y=>y.n==m.slice(3));if(x)return{m,v:x.g.slice()}}
  if(m=='act')return{m,v:P.map((_,i)=>ACT[i]??0)};
  if(m=='avg')return{m,v:P.map((_,i)=>S.pl.length?Math.round(S.pl.reduce((s,x)=>s+x.g[i],0)/S.pl.length):0)};
@@ -349,7 +350,7 @@ function renderK(){
  $('hemi').innerHTML=`<svg viewBox="0 0 340 185" style="width:100%;max-width:520px;display:block;margin:auto">${svg}<text x="170" y="150" text-anchor="middle" font-size="34" font-weight="700" fill="currentColor">${tot}</text><text x="170" y="168" text-anchor="middle" font-size="11" style="fill:var(--mu)">מתוך 120 · רוב: 61</text></svg>`;
  $('kst').innerHTML=ksel.size?(ok?`✅ יש רוב: <b>${tot}</b> מנדטים (${tot-61} מעל 61)`:`❌ חסרים <b>${61-tot}</b> מנדטים לרוב (יש ${tot})`):'בחרו מפלגות להרכבת קואליציה';
  $('kch').innerHTML=KORD.map(n=>{const pi=P.findIndex(p=>p.n==n);return v[pi]>0?`<button class="kp${ksel.has(pi)?' on':''}" data-k="${pi}">${B(P[pi])}<b>${v[pi]}</b></button>`:''}).join('');
- $('knote').textContent='מקור: '+(m=='me'?'הניחוש שמוזן כרגע בלשונית ״ניחוש״':m.startsWith('pl:')?'הניחוש של '+m.slice(3):m=='act'?(PROV?'מדגם יציאה (זמני)':'תוצאות אמת')+(Object.keys(ACT).length<P.length?' (חלקיות, לפי מה שהוזן)':''):m=='avg'?'ממוצע ניחושי הקבוצה':'חציון הסקרים')+' · מפלגות עם 0 מנדטים לא מוצגות'}
+ $('knote').textContent='מקור: '+(m.startsWith('x:')?'מדגם יציאה: '+srcName(m.slice(2)):m=='me'?'הניחוש שמוזן כרגע בלשונית ״ניחוש״':m.startsWith('pl:')?'הניחוש של '+m.slice(3):m=='act'?(PROV?'מדגם יציאה (זמני)':'תוצאות אמת')+(Object.keys(ACT).length<P.length?' (חלקיות, לפי מה שהוזן)':''):m=='avg'?'ממוצע ניחושי הקבוצה':'חציון הסקרים')+' · מפלגות עם 0 מנדטים לא מוצגות'}
 $('kch').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;const i=+b.dataset.k;ksel.has(i)?ksel.delete(i):ksel.add(i);renderK()};
 $('ksrc').onchange=()=>{csrc=$('ksrc').value;renderK()};
 const setBloc=bi=>{ksel=new Set(BLOCS[bi][1].map(n=>P.findIndex(p=>p.n==n)));renderK()};
