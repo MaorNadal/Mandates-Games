@@ -104,7 +104,7 @@ details{margin-top:6px}summary{cursor:pointer}
 <div class="card"><h3>📊 אחוז הצבעה</h3><div id="xturn"></div></div>
 <div class="card"><h3>📋 נתונים יבשים</h3><div id="xfacts"></div></div>
 <div class="card"><h3>🎯 מחשבון אחוז חסימה</h3>
-<div class="g"><label>אחוז הצבעה (%)</label><input id="xtu" type="number" step="0.1" min="0" max="100"><label>אחוז חסימה (%)</label><input id="xthrp" type="number" step="0.01" placeholder="3.25"><label>אחוז פסולים משוער (%)</label><input id="xinv" type="number" step="0.1" placeholder="1"><label>קולות כשרים (אם ידוע)</label><input id="xvalidc" type="number"></div>
+<div class="g"><label>אחוז הצבעה (%)</label><input id="xtu" type="number" step="0.1" min="0" max="100"><label>אחוז חסימה (%)</label><input id="xthrp" type="number" step="0.01" placeholder="3.25"><label>קולות פסולים</label><input id="xinvc" type="number" min="0"><label>קולות כשרים (אם ידוע)</label><input id="xvalidc" type="number"></div>
 <div id="xthrout" style="margin-top:8px"></div></div>
 <div class="card"><h3>🧮 מחשבון מנדטים והסכמי עודפים</h3>
 <p class="mu">שיטת בדר־עופר. השדות מתמלאים אוטומטית (קולות אמת אם הוזנו, אחרת הערכה לפי המנדטים), ואפשר לשנות כל מספר ולראות מה קורה.</p>
@@ -113,6 +113,12 @@ details{margin-top:6px}summary{cursor:pointer}
 <div style="margin-top:8px"><b>הסכם עודפים:</b> <select id="pa"></select> + <select id="pb"></select> <button class="s" id="padd">הוספה</button></div>
 <div id="plist" style="margin:6px 0"></div><button class="s" id="calcrst" hidden>↺ חזרה לנתוני המנהל</button><div id="xseatout"></div><button class="b" id="xcopy" hidden>⬇️ העבר חלוקה זו לתוצאות האמת (מנהל)</button></div>
 <div class="card"><h3>📈 מד הפתעות: תוצאות מול חציון הסקרים</h3><div id="xsurp"></div></div>
+<div class="card"><h3>🔁 השוואה לבחירות 2022</h3><div id="x22"></div></div>
+<div class="card"><h3>🏙️ תוצאות לפי יישובים: 2026 מול 2022</h3><p class="mu">הנתונים נטענים מאתר ועדת הבחירות. בחרו יישוב, ואפשר גם יישוב נוסף (או ״כל הארץ״) להשוואה.</p>
+<datalist id="ctlist"></datalist>
+<div class="g"><label>יישוב</label><input id="cta" list="ctlist" placeholder="הקלידו שם יישוב" autocomplete="off"><label>השוואה מול (רשות)</label><input id="ctb" list="ctlist" placeholder="יישוב נוסף או ״כל הארץ״" autocomplete="off"></div>
+<button class="s" id="ctload">טעינת נתוני היישובים</button> <span id="ctst" class="mu"></span>
+<div id="ctout" style="margin-top:8px"></div></div>
 <div class="card" id="xadmcard" hidden><h3>🔧 נתוני מנהל</h3><p class="mu">הנתונים נשמרים בענן ומוצגים לכולם.</p><div id="xadm"></div></div>
 <div class="card" id="savebar" hidden><h3>💾 שמירת נתוני מנהל</h3><button class="b" id="savebtn">💾 שמירה</button> <span id="savest"></span></div>
 </section>
@@ -194,7 +200,7 @@ $('ratios').innerHTML=turnCard+P.map(p=>{
 
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x==b));
- ['a','b','c','d','e'].forEach(t=>$(t).hidden=t!=b.dataset.t);window.scrollTo(0,0)});
+ ['a','b','c','d','e'].forEach(t=>$(t).hidden=t!=b.dataset.t);window.scrollTo(0,0);if(b.dataset.t=='e')loadCT()});
 
 $('gi').innerHTML=P.map((p,i)=>`<div class="pr"><label for="g${i}">${B(p)}<b>${p.n}</b></label><input type="number" inputmode="numeric" min="0" max="120" id="g${i}" value="${p.c}"><div class="h" id="h${i}"></div></div>`).join('')+`<div class="pr"><label for="gt"><b>🗳️ אחוז הצבעה צפוי (%)</b></label><input type="number" step="0.1" min="0" max="100" id="gt" value="${TO.c}"><div class="h" id="ht"></div></div>`;
 function hints(){
@@ -382,7 +388,7 @@ $('xcopy').onclick=()=>{if(!lastCalc||!confirm('להחליף את תוצאות �
 const EL0=7331981,HRS=[10,12,14,16,18,20,22,23],DEF26={10:16.68},CNT22={10:1076076,12:1925393,14:2638581,16:3224350,18:3919367,20:4498410,22:4794593};
 const HIST=[['2026',null],['2022',{10:15.9,12:28.4,14:38.9,16:47.5,18:57.7,20:66.3,22:70.6}],['2021',{10:14.8,12:25.4,20:60.9}],['2020',{20:65.6}],['ספט׳ 2019',{20:63.7}],['אפר׳ 2019',{20:61.3}]];
 let pairs=[],calcLocal=false;
-const CF=[['xtu','tu'],['xthrp','thrp'],['xinv','inv'],['xvalidc','validc'],['xother','other']];
+const CF=[['xtu','tu'],['xthrp','thrp'],['xinvc','invc'],['xvalidc','validc'],['xother','other']];
 const numOrU=id=>{const v=$(id).value;return v===''?undefined:+v};
 function readCalc(){const c={pairs:pairs.map(p=>[...p]),cv:{}};CF.forEach(([id,k])=>{const v=numOrU(id);if(v!==undefined)c[k]=v});P.forEach((_,i)=>{const v=numOrU('cv'+i);if(v!==undefined)c.cv[i]=v});return c}
 function calcEdit(){if(isAdm){S.ex.calc=readCalc();render();markDirty()}else{calcLocal=true;$('calcrst').hidden=false;renderX()}}
@@ -395,29 +401,42 @@ function refreshAdm(){buildActual();buildXAdm();buildExit()}
 const sum=a=>a.reduce((x,y)=>x+y,0),nf=v=>Math.round(v).toLocaleString('en-US');
 S.ex=S.ex||{};
 function exChanged(){render();markDirty()}
+async function syncCommittee(){
+ if(!CLOUD)return alert('זמין רק במצב ענן');const b=$('xsync'),st=$('xsyncst');b.disabled=true;st.textContent='מושך מוועדת הבחירות…';
+ try{if(dirty)await saveAdm();const r=await api('syncCommittee',{password:ADM});if(!r||!r.ok)throw (r&&r.error)||'שגיאה';
+  S.ex=r.ex||S.ex;lastSig='';calcLocal=false;applyCalc(true);buildXAdm();render();
+  $('xsyncst').textContent='✓ נמשך: נתוני הוועדה נכון ל־'+(S.ex.committee?.at||'')+'. לעדכון המנדטים בתוצאות האמת לחצו על ״העבר חלוקה זו לתוצאות האמת״ במחשבון.'}
+ catch(e){st.textContent='⚠️ המשיכה נכשלה: '+e+(String(e).includes('פעולה לא מוכרת')?' (צריך לפרוס גרסה חדשה של Apps Script)':'')}
+ finally{const bb=$('xsync');if(bb)bb.disabled=false}}
 function buildXAdm(){
  $('xadmcard').hidden=!isAdm;if(!isAdm)return;
  const f=(l,id,v,st)=>`<label>${l}</label><input type="number" id="${id}" step="${st||1}" value="${v??''}">`;
- $('xadm').innerHTML=`<div class="g">`+f('בעלי זכות בחירה','xel',S.ex.el)+f('קולות כשרים','xvalid',S.ex.valid)+f('קולות לאחוז החסימה (סופי)','xthr',S.ex.thrVotes)+HRS.map(h=>f(`אחוז הצבעה ${h}:00`,'xh'+h,S.ex.hrs?.[h],.1)).join('')+P.map((p,i)=>f(`קולות ${p.n}`,'xv'+i,S.ex.votes?.[i])).join('')+`</div>`;
+ const cm=S.ex.committee;
+ $('xadm').innerHTML=`<div style="margin-bottom:8px"><button class="b" id="xsync">📥 משיכת קולות מוועדת הבחירות</button> <span id="xsyncst" class="mu">${cm?`עודכן לאחרונה: נתוני הוועדה נכון ל־${esc(cm.at||'')} · ${nf(cm.ballots||0)} קלפיות`:'ממלא קולות לכל מפלגה, כשרים, פסולים ו״אחר״ מ־votes26.bechirot.gov.il'}</span></div><div class="g">`+f('בעלי זכות בחירה','xel',S.ex.el)+f('קולות כשרים','xvalid',S.ex.valid)+f('קולות פסולים','xinvalid',S.ex.invalid)+f('קולות למפלגות שלא עברו (אחר)','xoth',S.ex.other)+f('קולות לאחוז החסימה (סופי)','xthr',S.ex.thrVotes)+HRS.map(h=>f(`אחוז הצבעה ${h}:00`,'xh'+h,S.ex.hrs?.[h],.1)).join('')+P.map((p,i)=>f(`קולות ${p.n}`,'xv'+i,S.ex.votes?.[i])).join('')+`</div>`;
  const set=(id,fn)=>{$(id).oninput=()=>{const v=$(id).value;fn(v===''?undefined:+v);exChanged()}};
- set('xel',v=>S.ex.el=v);set('xvalid',v=>S.ex.valid=v);set('xthr',v=>S.ex.thrVotes=v);
+ set('xel',v=>S.ex.el=v);set('xvalid',v=>S.ex.valid=v);set('xinvalid',v=>S.ex.invalid=v);set('xoth',v=>S.ex.other=v);
+ $('xsync').onclick=syncCommittee;set('xthr',v=>S.ex.thrVotes=v);
  HRS.forEach(h=>set('xh'+h,v=>{S.ex.hrs=S.ex.hrs||{};S.ex.hrs[h]=v}));
  P.forEach((_,i)=>set('xv'+i,v=>{S.ex.votes=S.ex.votes||{};S.ex.votes[i]=v}))}
 function buildCalc(){
  $('xcv').innerHTML=P.map((p,i)=>`<label>${B(p)}${p.n}</label><input type="number" id="cv${i}" inputmode="numeric">`).join('');
  const o=P.map((p,i)=>`<option value="${i}">${p.n}</option>`).join('');$('pa').innerHTML=o;$('pb').innerHTML=o;$('pb').value=1;
- ['xtu','xthrp','xinv','xvalidc','xother'].forEach(id=>$(id).oninput=calcEdit);P.forEach((_,i)=>$('cv'+i).oninput=calcEdit);
+ ['xtu','xthrp','xinvc','xvalidc','xother'].forEach(id=>$(id).oninput=calcEdit);P.forEach((_,i)=>$('cv'+i).oninput=calcEdit);
  $('calcrst').onclick=()=>{calcLocal=false;$('calcrst').hidden=true;applyCalc(true);renderX()};
  $('padd').onclick=()=>{const a=+$('pa').value,b=+$('pb').value;if(a==b)return alert('בחרו שתי מפלגות שונות');if(pairs.some(p=>p.includes(a)||p.includes(b)))return alert('מפלגה יכולה להיות בהסכם אחד בלבד');pairs.push([a,b]);calcEdit()};
  $('plist').onclick=e=>{const b=e.target.closest('[data-x]');if(b){pairs.splice(+b.dataset.x,1);calcEdit()}}}
 function bader(vs,thr,prs){
+ // שיטת בדר-עופר: הסכם עודפים = רשימה אחת בחלוקת העודפים, ואחר כך המנדטים של הזוג מתחלקים ביניהם שוב באותה שיטה
  const pass=vs.map(v=>v>=thr&&v>0),idx=vs.map((_,i)=>i).filter(i=>pass[i]),tv=sum(idx.map(i=>vs[i])),q=tv/120,s={};
- idx.forEach(i=>s[i]=Math.floor(vs[i]/q));
- let left=120-sum(idx.map(i=>s[i]));const used=new Set();
- const units=[];prs.forEach(([a,b])=>{if(pass[a]&&pass[b]){units.push([a,b]);used.add(a);used.add(b)}});idx.forEach(i=>{if(!used.has(i))units.push([i])});
- while(left>0){let best=null,ba=-1;units.forEach(u=>{const v=sum(u.map(i=>vs[i])),ss=sum(u.map(i=>s[i])),av=v/(ss+1);if(av>ba){ba=av;best=u}});
-  const win=best.length==1?best[0]:(vs[best[0]]-s[best[0]]*q>=vs[best[1]]-s[best[1]]*q?best[0]:best[1]);s[win]++;left--}
- return{s,q,pass}}
+ const units=[],used=new Set();prs.forEach(([a,b])=>{if(pass[a]&&pass[b]&&!used.has(a)&&!used.has(b)){units.push([a,b]);used.add(a);used.add(b)}});idx.forEach(i=>{if(!used.has(i))units.push([i])});
+ const us=units.map(u=>Math.floor(sum(u.map(i=>vs[i]))/q));let left=120-sum(us);
+ while(left>0){let b=-1,ba=-1;units.forEach((u,k)=>{const av=sum(u.map(i=>vs[i]))/(us[k]+1);if(av>ba){ba=av;b=k}});us[b]++;left--}
+ const surp={};
+ units.forEach((u,k)=>{if(u.length==1){s[u[0]]=us[k];return}
+  const T=us[k],v=u.map(i=>vs[i]),q2=sum(v)/T,ss=v.map(x=>Math.floor(x/q2));let l=T-sum(ss);
+  while(l>0){const j=v[0]/(ss[0]+1)>=v[1]/(ss[1]+1)?0:1;ss[j]++;surp[u[j]]=(surp[u[j]]||0)+1;l--}
+  u.forEach((i,j)=>s[i]=ss[j])});
+ return{s,q,pass,surp}}
 function renderX(){
  const el=S.ex.el||EL0,hasTu=S.tu!=null;
  // turnout bars
@@ -436,22 +455,100 @@ function renderX(){
   ['בעלי זכות בחירה',nf(el)],['קלפיות','12,000+'],['רשימות מתמודדות','38'],['שעות הצבעה','07:00–22:00'],['מנדטים / רוב','120 / 61'],['אחוז חסימה','3.25%'],
   ['מצביעים (הערכה)',hasTu?nf(el*S.tu/100):'–'],['קולות כשרים',valid?nf(valid):'–'],['קולות למנדט (בערך)',valid?nf(valid/120):'–']].map(([a,b])=>`<div><small>${a}</small><b style="font-size:1.05rem">${b}</b></div>`).join('')+`</div><small>בעלי זכות בחירה: 7,331,981 (נתון שסופק על ידי המנהל). קלפיות ורשימות: דיווחי תקשורת. קולות כשרים וקולות לכל מפלגה יוזנו על ידי המנהל.</small>`;
  // threshold
- const inv=+$('xinv').value||1,thrp=+$('xthrp').value||3.25;
+ const thrp=+$('xthrp').value||3.25;
  const tuC=+$('xtu').value||S.tu||TO.c;$('xtu').placeholder=String(S.tu??TO.c);
- const vEst=+$('xvalidc').value||valid||Math.round(el*(tuC/100)*(1-inv/100)),need=Math.ceil(vEst*thrp/100);
- $('xthrout').innerHTML=`קולות כשרים: <b>${nf(vEst)}</b>${$('xvalidc').value||valid?'':' <small>(הערכה: '+nf(el)+' בעלי זכות × '+tuC+'% הצבעה = '+nf(el*tuC/100)+' מצביעים, פחות '+inv+'% פסולים)</small>'}<br>דרושים לאחוז החסימה (${thrp}%): <b>${nf(need)}</b> קולות`+(S.ex.thrVotes?`<br>✅ <b>ערך סופי מהמנהל: ${nf(S.ex.thrVotes)} קולות</b> (זה הערך הקובע)`:'')+`<br><small>קולות לכל מנדט בערך: ${nf(vEst/120)}</small>`;
+ const voters=Math.round(el*tuC/100),invT=$('xinvc').value,invK=invT!==''?+invT:(S.ex.invalid??null),inv=invK??Math.round(voters*0.01);
+ $('xinvc').placeholder=invK!=null?String(invK):'הערכה '+nf(inv)+' (1%)';
+ const vEst=+$('xvalidc').value||valid||(voters-inv),need=Math.ceil(vEst*thrp/100);
+ $('xthrout').innerHTML=`קולות כשרים: <b>${nf(vEst)}</b>${$('xvalidc').value||valid?'':' <small>(הערכה: '+nf(el)+' בעלי זכות × '+tuC+'% הצבעה = '+nf(el*tuC/100)+' מצביעים, פחות '+nf(inv)+' קולות פסולים'+(invK==null?' (הערכה של 1%)':'')+')</small>'}<br>דרושים לאחוז החסימה (${thrp}%): <b>${nf(need)}</b> קולות`+(S.ex.thrVotes?`<br>✅ <b>ערך סופי מהמנהל: ${nf(S.ex.thrVotes)} קולות</b> (זה הערך הקובע)`:'')+`<br><small>קולות לכל מנדט בערך: ${nf(vEst/120)}</small>`;
  // seat calc
  const src=kSeats().v;
  const vs=P.map((_,i)=>{const t=$('cv'+i).value;if(t!=='')return +t;if(S.ex.votes?.[i]!=null)return S.ex.votes[i];return Math.round(src[i]*vEst/120)});
  P.forEach((_,i)=>{$('cv'+i).placeholder=String(vs[i])});
- const tot=sum(vs)+(+$('xother').value||0),thr=S.ex.thrVotes||Math.ceil(tot*thrp/100);
+ const othT=$('xother').value,oth=othT!==''?+othT:(S.ex.other||0);$('xother').placeholder=String(S.ex.other??0);
+ const tot=sum(vs)+oth,thr=S.ex.thrVotes||Math.ceil(tot*thrp/100),pct=v=>tot?(v/tot*100).toFixed(2)+'%':'–';
  const r=bader(vs,thr,pairs);lastCalc=r;$('xcopy').hidden=!isAdm;
  $('plist').innerHTML=pairs.map((p,i)=>`<span class="kp">${P[p[0]].n} + ${P[p[1]].n} <button class="s" data-x="${i}">✕</button></span>`).join('')||'<small>אין הסכמי עודפים</small>';
- $('xseatout').innerHTML=`<small>מכסה (קולות למנדט): ${nf(r.q)} · סף: ${nf(thr)} קולות</small><div class="wrap"><table><tr><th>מפלגה</th><th>קולות</th><th>עברה?</th><th>מנדטים</th><th>מקור</th></tr>`+
-  P.map((p,i)=>`<tr><td>${B(p)}${p.n}</td><td>${nf(vs[i])}</td><td>${r.pass[i]?'✔':'✘'}</td><td><b>${r.s[i]??0}</b></td><td>${src[i]}</td></tr>`).join('')+`</table></div>`;
+ $('xseatout').innerHTML=`<small>מכסה (קולות למנדט): ${nf(r.q)} · סף: ${nf(thr)} קולות</small><div class="wrap"><table><tr><th>מפלגה</th><th>קולות</th><th>אחוז מסך הקולות</th><th>עברה?</th><th>מנדטים</th><th>מקור</th></tr>`+
+  P.map((p,i)=>`<tr><td>${B(p)}${p.n}</td><td>${nf(vs[i])}</td><td>${pct(vs[i])}</td><td>${r.pass[i]?'✔':'✘'}</td><td><b>${r.s[i]??0}</b></td><td>${src[i]}</td></tr>`).join('')+`</table></div>`;
  // surprise meter
  const ks=Object.keys(ACT).map(Number);
- $('xsurp').innerHTML=ks.length?`<div class="wrap"><table><tr><th>מפלגה</th><th>חציון סקרים</th><th>בפועל</th><th>הפרש</th></tr>`+ks.sort((a,b)=>Math.abs(ACT[b]-(P[b].c))-Math.abs(ACT[a]-(P[a].c))).map(i=>{const d=ACT[i]-P[i].c;return `<tr><td>${B(P[i])}${P[i].n}</td><td>${P[i].c}</td><td><b>${ACT[i]}</b></td><td class="${d==0?'d0':Math.abs(d)<=1?'d1':Math.abs(d)<=2?'d2':'dn'}">${d>0?'▲ +':d<0?'▼ ':''}${d}</td></tr>`}).join('')+`</table></div>`:'<span class="mu">יופיע כשיוזנו תוצאות.</span>'}
+ $('xsurp').innerHTML=ks.length?`<div class="wrap"><table><tr><th>מפלגה</th><th>חציון סקרים</th><th>בפועל</th><th>הפרש</th></tr>`+ks.sort((a,b)=>Math.abs(ACT[b]-(P[b].c))-Math.abs(ACT[a]-(P[a].c))).map(i=>{const d=ACT[i]-P[i].c;return `<tr><td>${B(P[i])}${P[i].n}</td><td>${P[i].c}</td><td><b>${ACT[i]}</b></td><td class="${d==0?'d0':Math.abs(d)<=1?'d1':Math.abs(d)<=2?'d2':'dn'}">${d>0?'▲ +':d<0?'▼ ':''}${d}</td></tr>`}).join('')+`</table></div>`:'<span class="mu">יופיע כשיוזנו תוצאות.</span>';
+ render22()}
+// ===== השוואה ל־2022 ותוצאות לפי יישובים =====
+const L26={'מחל':0,'דרך':1,'רק':2,'אמת':3,'ודם':4,'שס':5,'ב':6,'ג':7,'ל':8,'ט':9,'עם':10,'ך':11,'די':12};
+const P22=[['מחל','הליכוד',32,1115336,0],['פה','יש עתיד',24,847435,1],['ט','הציונות הדתית',14,516470,0],['כן','המחנה הממלכתי',12,432482,1],['שס','ש״ס',11,392964,0],['ג','יהדות התורה',7,280194,0],['ל','ישראל ביתנו',6,213687,1],['עם','רע״ם',5,194047,2],['ום','חד״ש-תע״ל',5,178735,2],['אמת','העבודה',4,175992,1],['מרצ','מרצ',0,150793,1],['ד','בל״ד',0,138617,2],['ב','הבית היהודי',0,56775,3]];
+const N22={el:6788804,voters:4794593,valid:4764742};N22.invalid=N22.voters-N22.valid;
+const BL=['גוש הקואליציה','גוש האופוזיציה הציונית','מפלגות ערביות','אחרים'];
+const bl26=i=>{const n=P[i].n;const k=BLOCS.findIndex(b=>b[1].includes(n));return k<0||k>2?3:k};
+const L22=Object.fromEntries(P22.map(x=>[x[0],x]));
+let CT={26:null,25:null},ctSt='',ctLoading=false;
+function parseCT(txt){
+ const L=txt.replace(/^\uFEFF/,'').split(/\r?\n/).filter(x=>x.trim()),H=L[0].split(',').map(x=>x.trim()),ix=n=>H.indexOf(n);
+ const iN=ix('שם ישוב'),iC=ix('סמל ישוב'),iB=ix('בזב'),iV=ix('מצביעים'),iI=ix('פסולים'),iK=ix('כשרים');
+ if(iC<0||iK<0)throw 'פורמט לא מוכר';
+ const out={};L.slice(1).forEach(l=>{const c=l.split(',');const v={};H.forEach((h,j)=>{if(j>iK&&h)v[h]=+c[j]||0});
+  out[c[iC].trim()]={name:(c[iN]||'').trim(),bzb:+c[iB]||0,voters:+c[iV]||0,invalid:+c[iI]||0,valid:+c[iK]||0,v}});
+ return out}
+function ctTotal(d){const t={name:'כל הארץ',bzb:0,voters:0,invalid:0,valid:0,v:{}};Object.values(d).forEach(r=>{['bzb','voters','invalid','valid'].forEach(k=>t[k]+=r[k]);Object.entries(r.v).forEach(([k,x])=>t.v[k]=(t.v[k]||0)+x)});return t}
+async function loadCT(){
+ if(ctLoading||(CT[26]&&CT[25]))return;if(!CLOUD){ctSt='זמין רק במצב ענן';renderCT();return}
+ ctLoading=true;ctSt='טוען את נתוני היישובים מוועדת הבחירות…';renderCT();
+ try{const get=async y=>{const r=await fetch(SCRIPT_URL+'?csv='+y);const j=await r.json();if(!j.ok)throw j.error||'שגיאה';return parseCT(j.csv)};
+  const [a,b]=await Promise.all([get(26),get(25)]);CT={26:a,25:b};ctSt='';
+  const names=Object.entries(a).map(([c,r])=>[c,r.name]).sort((x,y)=>x[1].localeCompare(y[1],'he'));
+  $('ctlist').innerHTML=names.map(([c,n])=>`<option value="${esc(n)}">`).join('');}
+ catch(e){ctSt='⚠️ לא הצלחתי לטעון את נתוני היישובים: '+e+(String(e).includes('Unexpected')||String(e).includes('JSON')?' (צריך לפרוס גרסה חדשה של Apps Script)':'')}
+ finally{ctLoading=false;renderCT();render22()}}
+const ctFind=n=>{n=(n||'').trim();if(!n||!CT[26])return null;if(n=='כל הארץ')return 'ALL';return Object.keys(CT[26]).find(c=>CT[26][c].name==n)||null};
+function ctRec(code,y){if(!CT[y])return null;if(code=='ALL')return ctTotal(CT[y]);if(CT[y][code])return CT[y][code];
+ if(y==25){const nm=CT[26][code]?.name;const c=nm&&Object.keys(CT[25]).find(k=>CT[25][k].name==nm);return c?CT[25][c]:null}return null}
+// סיכום גושים מרשומה: קולות, אחוז, שווה ערך במנדטים
+function blocsOf(r,y){const b=[0,0,0,0];if(!r)return null;Object.entries(r.v).forEach(([k,x])=>{let g=3;if(y==26){if(k in L26)g=bl26(L26[k])}else if(L22[k])g=L22[k][4];b[g]+=x});
+ return b.map(v=>({v,p:r.valid?v/r.valid*100:0,m:r.valid?v/r.valid*120:0}))}
+const f1=x=>x.toFixed(1),sg=x=>(x>0?'+':'')+f1(x),dcl=x=>x>0.05?'d1':x<-0.05?'d2':'';
+function partyRows(r,y){if(!r)return '';const rows=Object.entries(r.v).filter(([,x])=>x>0).sort((a,b)=>b[1]-a[1]);const named=[],oth=[0];
+ rows.forEach(([k,x])=>{if(y==26&&k in L26)named.push([B(P[L26[k]])+P[L26[k]].n,x]);else if(y==25&&L22[k]&&L22[k][4]<3)named.push([L22[k][1],x]);else if(y==25&&L22[k])named.push([L22[k][1],x]);else oth[0]+=x});
+ if(oth[0])named.push(['אחרות',oth[0]]);
+ return named.map(([n,x])=>`<tr><td>${n}</td><td>${nf(x)}</td><td>${f1(x/r.valid*100)}%</td><td>${f1(x/r.valid*120)}</td></tr>`).join('')}
+function ctCol(code){const a=ctRec(code,26),b=ctRec(code,25);return{a,b,ba:blocsOf(a,26),bb:blocsOf(b,25),name:code=='ALL'?'כל הארץ':(a?.name||'')}}
+function renderCT(){
+ const st=$('ctst');if(!st)return;st.textContent=ctSt;if(!CT[26]){$('ctout').innerHTML='';return}
+ const cA=ctFind($('cta').value),cB=ctFind($('ctb').value);
+ if(!cA){$('ctout').innerHTML='<span class="mu">בחרו יישוב מהרשימה (אפשר להקליד חלק מהשם).</span>';return}
+ const cols=[ctCol(cA)];if(cB&&cB!=cA)cols.push(ctCol(cB));
+ const tu=r=>r&&r.bzb?f1(r.voters/r.bzb*100)+'%':'–';
+ let h=`<div class="wrap"><table><tr><th>גוש (שווה ערך במנדטים)</th>${cols.map(c=>`<th>${esc(c.name)} 2022</th><th>${esc(c.name)} 2026</th><th>שינוי</th>`).join('')}</tr>`;
+ BL.forEach((n,g)=>{h+=`<tr><td>${n}</td>`+cols.map(c=>{const o=c.bb?.[g],x=c.ba?.[g];return `<td>${o?f1(o.m)+' <small>('+f1(o.p)+'%)</small>':'–'}</td><td><b>${x?f1(x.m):'–'}</b> <small>${x?'('+f1(x.p)+'%)':''}</small></td><td class="${o&&x?dcl(x.m-o.m):''}">${o&&x?sg(x.m-o.m):'–'}</td>`}).join('')+`</tr>`});
+ h+=`<tr><td>אחוז הצבעה</td>`+cols.map(c=>`<td>${tu(c.b)}</td><td>${tu(c.a)}</td><td>${c.a&&c.b&&c.a.bzb&&c.b.bzb?sg(c.a.voters/c.a.bzb*100-c.b.voters/c.b.bzb*100):'–'}</td>`).join('')+`</tr>`;
+ h+=`<tr><td>קולות כשרים</td>`+cols.map(c=>`<td>${c.b?nf(c.b.valid):'–'}</td><td>${c.a?nf(c.a.valid):'–'}</td><td></td>`).join('')+`</tr></table></div>`;
+ h+=`<small>שווה ערך במנדטים = אחוז הקולות הכשרים ביישוב × 120. ב־2022: קואליציה = הליכוד, הציונות הדתית, ש״ס, יהדות התורה · אופוזיציה ציונית = יש עתיד, המחנה הממלכתי, ישראל ביתנו, העבודה, מרצ · ערביות = רע״ם, חד״ש-תע״ל, בל״ד. ב־2026 לפי הגושים שבאפליקציה (המילואימניקים ב״אחרים״).</small>`;
+ cols.forEach(c=>{h+=`<h3 style="margin-top:12px">${esc(c.name)}: לפי מפלגות</h3><div class="wrap" style="display:flex;gap:10px;flex-wrap:wrap"><table><tr><th>2026</th><th>קולות</th><th>%</th><th>מנד׳</th></tr>${partyRows(c.a,26)||'<tr><td colspan="4">אין נתונים</td></tr>'}</table><table><tr><th>2022</th><th>קולות</th><th>%</th><th>מנד׳</th></tr>${partyRows(c.b,25)||'<tr><td colspan="4">אין נתונים ל־2022</td></tr>'}</table></div>`});
+ $('ctout').innerHTML=h}
+// השוואה ארצית ל־2022 (מנדטים אמיתיים)
+function render22(){
+ if(!$('x22'))return;
+ const real=S.act||{},hasReal=Object.keys(real).length>=P.length;
+ const seats=hasReal?P.map((_,i)=>+real[i]||0):(lastCalc?P.map((_,i)=>lastCalc.s[i]||0):P.map((_,i)=>ACT[i]||0));
+ const tot26=CT[26]?ctTotal(CT[26]):null;
+ const v26=P.map((_,i)=>S.ex.votes?.[i]??(tot26?Object.entries(tot26.v).filter(([k])=>L26[k]==i).reduce((s,[,x])=>s+x,0):null));
+ const valid26=S.ex.valid||tot26?.valid||null;
+ const b22=[0,0,0,0],b26=[0,0,0,0],pv22=[0,0,0,0],pv26=[0,0,0,0];
+ P22.forEach(x=>{b22[x[4]]+=x[2];pv22[x[4]]+=x[3]});
+ P.forEach((_,i)=>{b26[bl26(i)]+=seats[i];if(v26[i]!=null)pv26[bl26(i)]+=v26[i]});
+ const oth22=N22.valid-P22.reduce((s,x)=>s+x[3],0);pv22[3]+=oth22;
+ if(valid26){const oth=valid26-v26.reduce((s,x)=>s+(x||0),0);if(oth>0)pv26[3]+=oth}
+ let h=`<div class="wrap"><table><tr><th>גוש</th><th>2022</th><th>2026</th><th>שינוי</th><th>% 2022</th><th>% 2026</th></tr>`+
+  BL.map((n,g)=>`<tr><td>${n}</td><td>${b22[g]}</td><td><b>${b26[g]}</b></td><td class="${dcl(b26[g]-b22[g])}">${(b26[g]-b22[g]>0?'+':'')+(b26[g]-b22[g])}</td><td>${f1(pv22[g]/N22.valid*100)}%</td><td>${valid26?f1(pv26[g]/valid26*100)+'%':'–'}</td></tr>`).join('')+`</table></div>`;
+ h+=`<small>מנדטים 2026: ${hasReal?'תוצאות האמת שהוזנו':'לפי מחשבון המנדטים'}. ${hasReal?'':'(זמני)'}</small>`;
+ h+=`<div class="wrap" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px"><table><tr><th>2026</th><th>מנד׳</th><th>קולות</th><th>%</th></tr>`+P.map((p,i)=>[p,i]).sort((a,b)=>seats[b[1]]-seats[a[1]]||(v26[b[1]]||0)-(v26[a[1]]||0)).map(([p,i])=>`<tr><td>${B(p)}${p.n}</td><td><b>${seats[i]}</b></td><td>${v26[i]!=null?nf(v26[i]):'–'}</td><td>${v26[i]!=null&&valid26?f1(v26[i]/valid26*100)+'%':'–'}</td></tr>`).join('')+`</table>`+
+  `<table><tr><th>2022</th><th>מנד׳</th><th>קולות</th><th>%</th></tr>`+P22.map(x=>`<tr><td>${x[1]}</td><td><b>${x[2]}</b></td><td>${nf(x[3])}</td><td>${f1(x[3]/N22.valid*100)}%</td></tr>`).join('')+`</table></div>`;
+ const tu22=N22.voters/N22.el*100;
+ h+=`<p>אחוז הצבעה: 2022 <b>${f1(tu22)}%</b>${S.tu!=null?` · 2026 <b>${S.tu}%</b> (${sg(S.tu-tu22)})`:''} · קולות כשרים: 2022 <b>${nf(N22.valid)}</b>${valid26?` · 2026 <b>${nf(valid26)}</b>`:''}</p><small>נתוני 2022: ועדת הבחירות המרכזית לכנסת ה־25 (votes25.bechirot.gov.il).</small>`;
+ $('x22').innerHTML=h}
+$('cta').oninput=$('ctb').oninput=()=>renderCT();
+$('cta').onfocus=$('ctb').onfocus=loadCT;$('ctload').onclick=loadCT;
+
 buildCalc();applyCalc(true);
 
 // init
