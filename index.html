@@ -37,6 +37,8 @@ select{font:inherit;padding:7px;border:1px solid var(--bd);border-radius:10px;ba
 details.rw{border:1px solid var(--bd);border-radius:14px;margin-bottom:8px;background:var(--card);overflow:hidden}details.rw summary{list-style:none;display:flex;align-items:center;gap:8px;padding:10px;cursor:pointer}details.rw summary::-webkit-details-marker{display:none}
 .rk{width:30px;text-align:center;font-weight:800;font-size:1.1rem}.nm{flex:1;font-weight:600}.sc{font-weight:800;font-size:1.1rem}.hint{color:var(--ac);font-size:.72rem}.chv{display:inline-block;transition:transform .2s;color:var(--ac)}details[open] .chv{transform:rotate(-90deg)}
 .bd2{padding:0 10px 10px}.chips span{display:inline-block;margin:2px;padding:2px 8px;border-radius:10px;background:var(--bg);font-size:.78rem}.pbar{height:5px;border-radius:3px;background:var(--bd);margin:0 10px 8px}.pbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+.kleg{display:flex;flex-wrap:wrap;gap:6px 10px;margin:6px 0}.klg{display:inline-flex;align-items:center;gap:4px;font-size:.8rem}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none}
+.dmapbox svg{display:block;margin:auto;width:100%;max-width:240px}.dmapbox path{cursor:pointer;transition:opacity .2s;stroke:var(--bg);stroke-width:1.2}
 .bl{display:flex;gap:6px;flex-wrap:wrap}.bl div{flex:1;min-width:110px;border:1px solid var(--bd);border-radius:12px;padding:6px 8px;background:var(--card);font-size:.8rem;text-align:center}.bl b{display:block;font-size:1.25rem}
 .bd{display:inline-flex;width:22px;height:22px;border-radius:50%;color:#fff;font-size:.72rem;font-weight:700;align-items:center;justify-content:center;margin-inline-end:6px;vertical-align:middle}
 .wrap{overflow-x:auto}table{border-collapse:collapse;font-size:.85rem;width:100%}
@@ -120,7 +122,12 @@ details{margin-top:6px}summary{cursor:pointer}
 <datalist id="ctlist"></datalist>
 <label style="display:block;margin-top:6px">יישוב<input id="cta" list="ctlist" placeholder="הקלידו שם יישוב" autocomplete="off" style="width:100%;box-sizing:border-box"></label><label style="display:block;margin-top:6px">השוואה מול (רשות)<input id="ctb" list="ctlist" placeholder="יישוב נוסף או ״כל הארץ״" autocomplete="off" style="width:100%;box-sizing:border-box"></label>
 <button class="s" id="ctload">טעינת נתוני היישובים</button> <span id="ctst" class="mu"></span>
-<div id="ctout" style="margin-top:8px"></div></div>
+<div id="ctout" style="margin-top:8px"></div><div id="cthemi"></div></div>
+<div class="card"><h3>🗺️ הצבעה לפי מחוזות ישראל</h3><p class="mu" id="dmst"></p>
+<div id="dadm" hidden style="margin:6px 0"><label class="s" style="display:inline-block;cursor:pointer">📂 העלאת קובץ שיוך יישובים למחוזות<input type="file" id="dfile" accept=".csv,.txt,.tsv" hidden></label> <span id="dust" class="mu"></span></div>
+<div id="dmapwrap" class="dmapbox"></div><small class="mu">מפה סכמטית, לא לקנה מידה. השיוך בפועל של כל יישוב נקבע מקובץ השיוך שהמנהל העלה.</small>
+<div id="dout" style="margin-top:10px"></div></div>
+<div class="card" id="dcmpcard" hidden><h3>🔁 המחוז שנבחר: 2026 מול 2022</h3><div id="dcmp"></div></div>
 <div class="card" id="xadmcard" hidden><h3>🔧 נתוני מנהל</h3><p class="mu">הנתונים נשמרים בענן ומוצגים לכולם.</p><div id="xadm"></div></div>
 <div class="card" id="savebar" hidden><h3>💾 שמירת נתוני מנהל</h3><button class="b" id="savebtn">💾 שמירה</button> <span id="savest"></span></div>
 </section>
@@ -286,7 +293,7 @@ function score(pl){
 const maxPot=pl=>P.reduce((s,p,i)=>s+10*R(p,pl.g[i]),0);
 
 function render(){
- setACT();exitCard();$('provb').textContent=PROV?'⚡ ניקוד זמני לפי '+(PROV=='avg'?'ממוצע מדגמי היציאה':(CH.find(c=>c[0]==PROV)||[0,PROV])[1]):'';renderK();renderX();const rows=S.pl.map(pl=>({pl,...score(pl)})).sort((x,y)=>y.tot-x.tot||x.dev-y.dev);
+ setACT();exitCard();$('provb').textContent=PROV?'⚡ ניקוד זמני לפי '+(PROV=='avg'?'ממוצע מדגמי היציאה':(CH.find(c=>c[0]==PROV)||[0,PROV])[1]):'';renderK();renderX();renderDist();const rows=S.pl.map(pl=>({pl,...score(pl)})).sort((x,y)=>y.tot-x.tot||x.dev-y.dev);
  const has=Object.keys(ACT).length>0,medal=['🥇','🥈','🥉'];
  const as=Object.keys(ACT).length,asum=Object.values(ACT).reduce((a,b)=>a+b,0);
  $('asum').innerHTML=`סה״כ מנדטים שהוזנו: <b class="${as<P.length||asum==120?'':'w'}">${asum}</b>/120 · ${as} מתוך ${P.length} מפלגות${as==P.length&&asum!=120?' – הסכום לא 120, כדאי לבדוק':''}`;
@@ -529,7 +536,7 @@ function partyRows(r,y){if(!r)return '';const named=[];let oth=0;
  return named.map(([n,x])=>`<tr><td>${n}</td><td>${nf(x)}</td><td>${f1(x/r.valid*100)}%</td><td>${f1(x/r.valid*120)}</td></tr>`).join('')}
 function ctCol(code){const a=ctRec(code,26),b=ctRec(code,25);return{a,b,ba:blocsOf(a,26),bb:blocsOf(b,25),name:code=='ALL'?'כל הארץ':(a?.name||'')}}
 function renderCT(){
- const st=$('ctst');if(!st)return;st.textContent=ctSt;if(!CT[26]){$('ctout').innerHTML='';return}
+ const st=$('ctst');if(!st)return;st.textContent=ctSt;$('cthemi').innerHTML='';if(!CT[26]){$('ctout').innerHTML='';return}
  const cA=ctFind($('cta').value),cB=ctFind($('ctb').value);
  if(!cA){$('ctout').innerHTML='<span class="mu">בחרו יישוב מהרשימה (אפשר להקליד חלק מהשם).</span>';return}
  const cols=[ctCol(cA)];if(cB&&cB!=cA)cols.push(ctCol(cB));
@@ -543,7 +550,7 @@ function renderCT(){
   const t0=tu(c.b),t1=tu(c.a);h+=`<small>אחוז הצבעה: 2022 ${t0!=null?f1(t0)+'%':'–'} · 2026 ${t1!=null?f1(t1)+'%':'–'}${t0!=null&&t1!=null?` (${sg(t1-t0)})`:''} · קולות כשרים: ${c.b?nf(c.b.valid):'–'} ← ${c.a?nf(c.a.valid):'–'}</small>`;
   h+=`<details style="margin-top:6px"><summary>פירוט לפי מפלגות</summary><div class="wrap" style="display:flex;gap:10px;flex-wrap:wrap"><table><tr><th>2026</th><th>קולות</th><th>%</th><th>מנד׳</th></tr>${partyRows(c.a,26)||'<tr><td colspan="4">אין נתונים</td></tr>'}</table><table><tr><th>2022</th><th>קולות</th><th>%</th><th>מנד׳</th></tr>${partyRows(c.b,25)||'<tr><td colspan="4">אין נתונים ל־2022</td></tr>'}</table></div></details></div>`});
  h+=`<small>המספרים בפסים: ״שווה ערך במנדטים״ = אחוז הקולות הכשרים ביישוב × 120. גושי 2022: קואליציה = הליכוד, הציונות הדתית, ש״ס, יהדות התורה · אופוזיציה ציונית = יש עתיד, המחנה הממלכתי, ישראל ביתנו, העבודה, מרצ · ערביות = רע״ם, חד״ש-תע״ל, בל״ד. גושי 2026 לפי האפליקציה (המילואימניקים והכלכלית ב״אחרים״).</small>`;
- $('ctout').innerHTML=h}
+ $('ctout').innerHTML=h;renderCtHemi(cols)}
 // ---- השוואה ארצית ל־2022 ----
 function render22(){
  if(!$('x22'))return;
@@ -583,6 +590,68 @@ async function uploadCT(files){
    ust(`✓ ${y==26?'2026':'2022'}: נקלטו ${Object.keys(d).length} יישובים${y==26?', והקולות הארציים עודכנו. לעדכון המנדטים בתוצאות האמת לחצו על ״העבר חלוקה זו לתוצאות האמת״ במחשבון.':'.'}`);
    ctList();renderCT();render22()}
   catch(e){ust('⚠️ '+e+(String(e).includes('לא מוכרת')?' (צריך לפרוס גרסה חדשה של Apps Script)':''));return}}}
+// ===== חצי עיגול לפי יישוב / מחוז =====
+const natPass=()=>{const t=CT[26]?ctTotal(CT[26]):null;if(!t)return null;const thr=Math.ceil(t.valid*0.0325),ok={};Object.entries(t.v).forEach(([k,x])=>{if(k in L26&&x>=thr)ok[L26[k]]=1});return ok};
+function seatsFor(rec){const ok=natPass();if(!rec||!ok)return null;const vs=P.map(()=>0);Object.entries(rec.v).forEach(([k,x])=>{if(k in L26&&ok[L26[k]])vs[L26[k]]+=x});if(!sum(vs))return null;const r=bader(vs,1,[...(S.ex.pairs||[])]);return P.map((_,i)=>r.s[i]??0)}
+function hemiSvg(v){const pos=[];KROWS.forEach((n,k)=>{const r=70+k*18;for(let j=0;j<n;j++){const th=Math.PI-Math.PI*j/(n-1);pos.push({th,r,x:170+r*Math.cos(th),y:172-r*Math.sin(th)})}});pos.sort((a,b)=>b.th-a.th||a.r-b.r);
+ let q=0,svg='';KSEAT.map(n=>P.findIndex(p=>p.n==n)).forEach(pi=>{const c=(BADGE[P[pi].n]||['#777'])[0];for(let s=0;s<v[pi]&&q<pos.length;s++,q++){const o=pos[q];svg+=`<circle cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="5.6" fill="${c}"/>`}});
+ for(;q<pos.length;q++){const o=pos[q];svg+=`<circle cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="5.6" fill="#999" opacity=".15"/>`}
+ return `<svg viewBox="0 0 340 185" style="width:100%;max-width:520px;display:block;margin:auto"><g>${svg}</g><text x="170" y="150" text-anchor="middle" font-size="30" font-weight="700" fill="currentColor">${sum(v)}</text><text x="170" y="168" text-anchor="middle" font-size="11" style="fill:var(--mu)">מנדטים</text></svg>`}
+const hemiLegend=v=>`<div class="kleg">`+KORD.map(n=>{const pi=P.findIndex(p=>p.n==n);return v[pi]>0?`<span class="klg"><i class="dot" style="background:${(BADGE[n]||['#777'])[0]}"></i>${B(P[pi])}<b>${v[pi]}</b></span>`:''}).join('')+`</div>`;
+const hemiNote='<small>הערכה: חלוקת 120 המנדטים בשיטת בדר־עופר לפי הקולות באזור זה בלבד, כאילו כל הציבור הצביע כמוהו. נספרות רק מפלגות שעברו את אחוז החסימה הארצי.</small>';
+function hemiBlock(title,rec){const s=seatsFor(rec);if(!s)return `<div class="ctbox"><h3>${esc(title)}</h3><small>אין מספיק נתונים לחישוב מנדטים.</small></div>`;
+ return `<div class="ctbox"><h3>${esc(title)}: חצי עיגול הכנסת</h3>${hemiSvg(s)}${hemiLegend(s)}<h3 style="margin-top:8px;font-size:.9rem">מנדטים לפי גוש</h3>${blocHtml(s)}${hemiNote}</div>`}
+function renderCtHemi(cols){$('cthemi').innerHTML=cols.map(c=>c.a?hemiBlock(c.name,c.a):'').join('')}
+// ===== מחוזות =====
+const DIST=[['n','מחוז הצפון'],['h','מחוז חיפה'],['c','מחוז המרכז'],['t','מחוז תל אביב'],['j','מחוז ירושלים'],['s','מחוז הדרום']];
+const DCOL={n:'#5aa9e6',h:'#5fc79a',c:'#f2c14e',t:'#e07a8a',j:'#b48ae0',s:'#f29e6b'};
+const DPOLY={
+ n:[[35.10,33.09],[35.07,32.92],[34.99,32.84],[35.12,32.80],[35.22,32.68],[35.25,32.55],[35.55,32.50],[35.57,32.70],[35.58,32.88],[35.70,32.80],[35.80,32.85],[35.83,33.05],[35.80,33.28],[35.62,33.27],[35.57,33.21],[35.50,33.10],[35.33,33.09]],
+ h:[[34.99,32.84],[35.12,32.80],[35.22,32.68],[35.25,32.55],[35.12,32.46],[34.96,32.44],[34.88,32.44],[34.90,32.60],[34.94,32.69],[34.99,32.82]],
+ c:[[34.88,32.44],[34.96,32.44],[35.12,32.46],[35.25,32.55],[35.55,32.50],[35.55,32.20],[35.50,31.95],[35.30,32.00],[35.05,31.95],[34.95,31.78],[34.66,31.82],[34.70,31.93],[34.72,31.99],[34.76,32.08],[34.79,32.17],[34.85,32.33]],
+ t:[[34.79,32.14],[34.86,32.14],[34.88,32.04],[34.84,31.97],[34.72,31.99],[34.74,32.03],[34.76,32.08]],
+ j:[[34.95,31.78],[35.05,31.95],[35.30,32.00],[35.50,31.95],[35.50,31.70],[35.45,31.35],[35.30,31.35],[35.10,31.55],[34.95,31.60]],
+ s:[[34.66,31.82],[34.95,31.78],[34.95,31.60],[35.10,31.55],[35.30,31.35],[35.45,31.35],[35.40,31.10],[35.15,30.80],[35.10,30.30],[35.00,29.80],[34.95,29.55],[34.89,29.55],[34.75,29.95],[34.50,30.45],[34.40,30.87],[34.35,31.05],[34.27,31.22],[34.50,31.34],[34.57,31.52],[34.53,31.60],[34.55,31.66],[34.64,31.80]]};
+const DLAB={n:[35.32,32.97,'צפון'],h:[35.07,32.66,'חיפה'],c:[35.22,32.25,'מרכז'],t:[34.80,32.05,'ת״א'],j:[35.22,31.70,'ירושלים'],s:[34.85,30.75,'דרום']};
+let dsel=null,dTried=false;
+const dpx=([lo,la])=>[((lo-34.15)*93.5).toFixed(1),((33.35-la)*110).toFixed(1)];
+const dget=code=>S.ex.dmap?S.ex.dmap[String(+code)]:undefined;
+function mapSvg(){return `<svg viewBox="0 0 165 425" role="img" aria-label="מפת מחוזות">`+['s','j','c','n','h','t'].map(k=>`<path data-d="${k}" d="M${DPOLY[k].map(p=>dpx(p).join(',')).join('L')}Z" fill="${DCOL[k]}" opacity="${dsel&&dsel!=k?.45:1}" ${dsel==k?'style="stroke:var(--tx);stroke-width:2"':''}></path>`).join('')+Object.entries(DLAB).map(([k,[lo,la,t]])=>{const[x,y]=dpx([lo,la]);return `<text x="${x}" y="${y}" text-anchor="middle" font-size="${k=='t'?7:10}" font-weight="700" fill="#1b1f24" style="pointer-events:none">${t}</text>`}).join('')+`</svg>`}
+function distAgg(y,key){if(!CT[26]||!S.ex.dmap)return null;const t={name:'',bzb:0,voters:0,invalid:0,valid:0,v:{}};let n=0;
+ Object.keys(CT[26]).forEach(code=>{if(dget(code)!==key)return;const r=ctRec(code,y);if(!r)return;n++;['bzb','voters','invalid','valid'].forEach(k=>t[k]+=r[k]);Object.entries(r.v).forEach(([k,x])=>t.v[k]=(t.v[k]||0)+x)});return n?{...t,n}:null}
+function distTable(r,s){const rows=[];let named=0;P.forEach((p,i)=>{const x=Object.entries(r.v).filter(([k])=>L26[k]==i).reduce((a,[,b])=>a+b,0);if(x>0){named+=x;rows.push([i,x])}});rows.sort((a,b)=>b[1]-a[1]);const oth=r.valid-named;
+ return `<div class="wrap"><table><tr><th>מפלגה</th><th>קולות</th><th>%</th><th>מנדטים</th></tr>`+rows.map(([i,x])=>`<tr><td>${B(P[i])}${P[i].n}</td><td>${nf(x)}</td><td>${f1(x/r.valid*100)}%</td><td><b>${s?s[i]:'–'}</b></td></tr>`).join('')+(oth>0?`<tr><td>אחרות</td><td>${nf(oth)}</td><td>${f1(oth/r.valid*100)}%</td><td>–</td></tr>`:'')+`</table></div>`}
+function cmpBox(title,a,b){const ba=blocsOf(a,26),bb=blocsOf(b,25),tu=r=>r&&r.bzb?r.voters/r.bzb*100:null;
+ let h=legend()+`<div class="ctbox"><h3>${esc(title)}</h3>`+sbar('2022',bb?bb.map(x=>x.m):[0,0,0,0],120,v=>f1(v))+sbar('2026',ba?ba.map(x=>x.m):[0,0,0,0],120,v=>f1(v));
+ if(!b)h+='<small>אין נתוני 2022 למחוז</small>';
+ if(a&&b)h+=`<div class="chips2">${[0,1,2,3].map(g=>chip(g,bb[g].m,ba[g].m,f1)).join('')}</div>`;
+ const t0=tu(b),t1=tu(a);h+=`<small>אחוז הצבעה: 2022 ${t0!=null?f1(t0)+'%':'–'} · 2026 ${t1!=null?f1(t1)+'%':'–'}${t0!=null&&t1!=null?` (${sg(t1-t0)})`:''} · קולות כשרים: ${b?nf(b.valid):'–'} ← ${a?nf(a.valid):'–'}</small>`;
+ h+=`<details style="margin-top:6px"><summary>פירוט לפי מפלגות</summary><div class="wrap" style="display:flex;gap:10px;flex-wrap:wrap"><table><tr><th>2026</th><th>קולות</th><th>%</th><th>מנד׳</th></tr>${partyRows(a,26)||'<tr><td colspan="4">אין נתונים</td></tr>'}</table><table><tr><th>2022</th><th>קולות</th><th>%</th><th>מנד׳</th></tr>${partyRows(b,25)||'<tr><td colspan="4">אין נתונים ל־2022</td></tr>'}</table></div></details></div>`;
+ return h}
+function renderDist(){
+ const box=$('dmapwrap');if(!box)return;$('dadm').hidden=!isAdm;
+ if(CLOUD&&!CT[26]&&!ctLoading&&!dTried){dTried=true;loadCT()}
+ const have=!!S.ex.dmap&&Object.keys(S.ex.dmap).length>0;
+ $('dmst').textContent=!CLOUD?'זמין רק במצב ענן.':!CT[26]?'טוען את נתוני היישובים… (אם לא נטענו, לחצו על ״טעינת נתוני היישובים״ בכרטיס היישובים).':!have?'שיוך היישובים למחוזות עדיין לא הועלה. המנהל צריך להעלות קובץ שיוך (סמל ישוב ומחוז).':'לחצו על מחוז במפה כדי לראות את הטבלה וחצי העיגול שלו.';
+ box.innerHTML=mapSvg();
+ if(!dsel||!have||!CT[26]){$('dout').innerHTML='';$('dcmpcard').hidden=true;return}
+ const nm=DIST.find(d=>d[0]==dsel)[1],a=distAgg(26,dsel),b=distAgg(25,dsel);
+ if(!a){$('dout').innerHTML=`<span class="mu">אין יישובים משויכים ל${esc(nm)}.</span>`;$('dcmpcard').hidden=true;return}
+ const s=seatsFor(a),unm=Object.keys(CT[26]).filter(c=>!dget(c)).length;
+ $('dout').innerHTML=`<h3>${esc(nm)}</h3><small>${nf(a.n)} יישובים · קולות כשרים ${nf(a.valid)} · אחוז הצבעה ${a.bzb?f1(a.voters/a.bzb*100)+'%':'–'}${unm?` · ${nf(unm)} יישובים בקובץ הארצי ללא שיוך למחוז (לא נספרו)`:''}</small>`+distTable(a,s)+(s?`${hemiSvg(s)}${hemiLegend(s)}<h3 style="margin-top:8px;font-size:.9rem">מנדטים לפי גוש</h3>${blocHtml(s)}${hemiNote}`:'');
+ $('dcmpcard').hidden=false;$('dcmp').innerHTML=cmpBox(nm,a,b)}
+$('dmapwrap').onclick=e=>{const p=e.target.closest('[data-d]');if(p){dsel=p.dataset.d;renderDist()}};
+async function uploadDmap(f){const st=$('dust');try{st.textContent='קורא…';const txt=await readCsvFile(f),L=txt.split(/\r?\n/).filter(x=>x.trim());
+  const d=(L[0].match(/\t/g)||[]).length>(L[0].match(/,/g)||[]).length?'\t':(L[0].includes(';')&&!L[0].includes(',')?';':',');
+  const sp=l=>{const o=[];let c='',q=false;for(const ch of l){if(ch=='"')q=!q;else if(ch==d&&!q){o.push(c);c=''}else c+=ch}o.push(c);return o.map(x=>x.trim())};
+  const H=sp(L[0]),iS=H.findIndex(x=>/סמל/.test(x)),iD=H.findIndex(x=>/מחוז/.test(x));
+  if(iS<0||iD<0)throw 'לא מצאתי עמודות ״סמל ישוב״ ו״מחוז״. עמודות בקובץ: '+H.join(' | ');
+  const key=v=>/צפון/.test(v)?'n':/חיפה/.test(v)?'h':/תל[\s-]*אביב/.test(v)?'t':/מרכז/.test(v)?'c':/ירושלים/.test(v)?'j':/דרום/.test(v)?'s':null;
+  const map={};let skip=0;L.slice(1).forEach(l=>{const c=sp(l),k=key(c[iD]||''),code=(c[iS]||'').replace(/\D/g,'');if(k&&code)map[String(+code)]=k;else skip++});
+  if(Object.keys(map).length<100)throw 'נקלטו רק '+Object.keys(map).length+' יישובים עם מחוז מוכר (דולגו '+skip+')';
+  S.ex.dmap=map;st.textContent='שומר בענן…';buildXAdm();render();await saveAdm();renderDist();st.textContent=`✓ נקלטו ${Object.keys(map).length} יישובים, דולגו ${skip} שורות`}
+ catch(e){st.textContent='⚠️ '+e}}
+$('dfile').onchange=e=>{if(e.target.files[0])uploadDmap(e.target.files[0]);e.target.value=''};
 $('cta').oninput=$('ctb').oninput=()=>renderCT();
 $('cta').onfocus=$('ctb').onfocus=()=>loadCT();$('ctload').onclick=()=>loadCT(true);
 
