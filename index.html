@@ -42,7 +42,16 @@ details.rw{border:1px solid var(--bd);border-radius:14px;margin-bottom:8px;backg
 .drow{cursor:pointer;border-radius:8px;padding:2px 4px}.drow:hover,.drow.sel{background:var(--bg);outline:1px solid var(--ac)}
 .dgrad{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--mu);margin-top:4px}.dgrad i{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,#dbeafe,#1d4ed8)}
 .hs{animation:pop .45s ease both}@keyframes pop{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
-.dmapbox svg{display:block;margin:auto;width:100%;max-width:240px}.dmapbox path:hover{filter:brightness(1.12)}.dmapbox path{cursor:pointer;transition:opacity .2s;stroke:var(--bg);stroke-width:1.2}
+.dsvg{--sea1:#e9f4ff;--sea2:#cfe5fa;display:block;margin:auto;width:100%;max-width:340px;border-radius:18px;box-shadow:0 10px 30px rgba(20,40,70,.22)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .dsvg{--sea1:#14283f;--sea2:#0d1c2e}}:root[data-theme="dark"] .dsvg{--sea1:#14283f;--sea2:#0d1c2e}
+.dg{cursor:pointer;outline:none;transform-box:fill-box;transform-origin:center;transition:transform .25s cubic-bezier(.2,.8,.2,1),filter .25s,opacity .25s}
+.dg.a{animation:rise .65s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*80ms)}
+.dg:hover,.dg:focus-visible{transform:translate(-1.5px,-3px);filter:drop-shadow(0 7px 5px rgba(8,20,40,.4)) brightness(1.05)}
+.dg.sel{filter:drop-shadow(0 8px 6px rgba(8,20,40,.5))}
+@keyframes rise{from{opacity:0;transform:translateY(12px) scale(.93)}}
+.pulse{animation:pulse 1.9s ease-out infinite;transform-box:fill-box;transform-origin:center}@keyframes pulse{0%{opacity:.8;transform:scale(1)}100%{opacity:0;transform:scale(2.3)}}
+.dkpi{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}.kpi{flex:1;min-width:110px;background:var(--bg);border:1px solid var(--bd);border-radius:14px;padding:7px 9px;text-align:center}.kpi b{display:block;font-size:1.15rem;line-height:1.3}.kpi small{display:block}
+.dwrap{display:grid;grid-template-columns:1fr;gap:14px}@media (min-width:760px){.dwrap{grid-template-columns:minmax(260px,340px) 1fr;align-items:start}}
 .bl{display:flex;gap:6px;flex-wrap:wrap}.bl div{flex:1;min-width:110px;border:1px solid var(--bd);border-radius:12px;padding:6px 8px;background:var(--card);font-size:.8rem;text-align:center}.bl b{display:block;font-size:1.25rem}
 .bd{display:inline-flex;width:22px;height:22px;border-radius:50%;color:#fff;font-size:.72rem;font-weight:700;align-items:center;justify-content:center;margin-inline-end:6px;vertical-align:middle}
 .wrap{overflow-x:auto}table{border-collapse:collapse;font-size:.85rem;width:100%}
@@ -128,12 +137,11 @@ details{margin-top:6px}summary{cursor:pointer}
 <button class="s" id="ctload">טעינת נתוני היישובים</button> <span id="ctst" class="mu"></span>
 <div id="ctout" style="margin-top:8px"></div><div id="cthemi"></div></div>
 <div class="card"><h3>🗺️ הצבעה לפי מחוזות ישראל</h3><p class="mu" id="dmst"></p>
+<div id="dkpi" class="dkpi"></div>
 <div class="dmodes"><button class="s on" data-dm="bloc">גוש מוביל</button><button class="s" data-dm="turn">אחוז הצבעה</button><button class="s" data-dm="party">אחוז מפלגה:</button> <select id="dparty"></select></div>
-<div id="dinfo" class="dinfo"></div>
-<div id="dmapwrap" class="dmapbox"></div><div id="dlegend"></div>
-<small class="mu">מפה סכמטית, לא לקנה מידה. שיוך היישובים למחוזות לפי קובץ הלמ״ס.</small>
-<h3 style="margin-top:12px;font-size:.95rem">השוואת המחוזות: מנדטים לפי גוש</h3><div id="drank"></div>
-<div id="dout" style="margin-top:10px"></div></div>
+<div class="dwrap"><div><div id="dinfo" class="dinfo"></div><div id="dmapwrap" class="dmapbox"></div><div id="dlegend"></div><small class="mu">מפה סכמטית, לא לקנה מידה. שיוך היישובים למחוזות לפי קובץ הלמ״ס.</small></div>
+<div><h3 style="font-size:.95rem;margin-top:0">השוואת המחוזות: מנדטים לפי גוש</h3><div id="drank"></div></div></div>
+<div id="dout" style="margin-top:10px"></div><div id="dunm"></div></div>
 <div class="card" id="dcmpcard" hidden><h3>🔁 המחוז שנבחר: 2026 מול 2022</h3><div id="dcmp"></div></div>
 <div class="card" id="xadmcard" hidden><h3>🔧 נתוני מנהל</h3><p class="mu">הנתונים נשמרים בענן ומוצגים לכולם.</p><div id="xadm"></div></div>
 <div class="card" id="savebar" hidden><h3>💾 שמירת נתוני מנהל</h3><button class="b" id="savebtn">💾 שמירה</button> <span id="savest"></span></div>
@@ -619,7 +627,7 @@ function hemiSvg(v){const pos=[];KROWS.forEach((n,k)=>{const r=70+k*18;for(let j
  const tot=q;for(;q<pos.length;){const o=pos[q];svg+=`<circle cx="${o.x.toFixed(1)}" cy="${o.y.toFixed(1)}" r="5.6" fill="#999" opacity=".15"/>`;q++}
  return `<svg viewBox="0 0 340 185" style="width:100%;max-width:520px;display:block;margin:auto"><g>${svg}</g><text x="170" y="150" text-anchor="middle" font-size="30" font-weight="700" fill="currentColor">${tot}</text><text x="170" y="168" text-anchor="middle" font-size="11" style="fill:var(--mu)">מנדטים</text></svg>`}
 const hemiLegend=v=>`<div class="kleg">`+KORD.map(n=>{const pi=P.findIndex(p=>p.n==n);return v[pi]>0?`<span class="klg"><i class="dot" style="background:${(BADGE[n]||['#777'])[0]}"></i>${B(P[pi])}<b>${v[pi]}</b></span>`:''}).join('')+(v.extras||[]).map((e,j)=>`<span class="klg"><i class="dot" style="background:${XCOL[j%3]}"></i>רשימה ״${esc(e.k)}״<b>${e.seats}</b></span>`).join('')+`</div>`;
-const idCard=code=>{const l=LOCS[String(+code)];if(!l)return '';const dn=(DIST.find(d=>d[0]==l[0])||[0,''])[1];return `<small>🪪 ${esc(dn)} · ${nf(l[1])} תושבים${l[1]?` · ${f1(l[3]/l[1]*100)}% ערבים`:''} · ${esc(LFORM[l[4]]||'')}</small>`};
+const idCard=code=>{const l=locOf(code);if(!l)return '';const dn=(DIST.find(d=>d[0]==l[0])||[0,''])[1];return `<small>🪪 ${esc(dn)} · ${nf(l[1])} תושבים${l[1]?` · ${f1(l[3]/l[1]*100)}% ערבים`:''} · ${esc(LFORM[l[4]]||'')}</small>`};
 const hemiNote=v=>`<small>הערכה לפי הקולות באזור זה בלבד (כאילו כל הציבור הצביע כמוהו): חלוקה בשיטת בדר־עופר עם הסכמי העודפים הרשמיים. נכללת כל רשימה שעברה ${(THR*100).toFixed(2)}% מהקולות הכשרים באזור (${nf(v.thr)} קולות), גם אם לא עברה את החסימה הארצית. מודד: ${nf(Math.floor(v.q))} קולות.${(v.extras||[]).length?' כולל רשימות נוספות שאינן ברשימת 13 המפלגות (באפור).':''}</small>`;
 function hemiBlock(title,rec,code){const s=seatsFor(rec);if(!s)return `<div class="ctbox"><h3>${esc(title)}</h3><small>אין מספיק נתונים לחישוב מנדטים.</small></div>`;
  return `<div class="ctbox"><h3>${esc(title)}: חצי עיגול הכנסת</h3>${code&&code!='ALL'?idCard(code):''}${hemiSvg(s)}${hemiLegend(s)}<h3 style="margin-top:8px;font-size:.9rem">מנדטים לפי גוש</h3>${blocHtml(s)}${hemiNote(s)}</div>`}
@@ -628,32 +636,68 @@ function renderCtHemi(cols){$('cthemi').innerHTML=cols.map(c=>c.a?hemiBlock(c.na
 const DIST=[['j','מחוז ירושלים'],['n','מחוז הצפון'],['h','מחוז חיפה'],['c','מחוז המרכז'],['t','מחוז תל אביב'],['s','מחוז הדרום'],['y','יהודה ושומרון']];
 const DPOLY={
  n:[[35.10,33.09],[35.07,32.92],[34.99,32.84],[35.12,32.80],[35.22,32.68],[35.25,32.55],[35.55,32.50],[35.57,32.70],[35.58,32.88],[35.70,32.80],[35.80,32.85],[35.83,33.05],[35.80,33.28],[35.62,33.27],[35.57,33.21],[35.50,33.10],[35.33,33.09]],
- h:[[34.99,32.84],[35.12,32.80],[35.22,32.68],[35.25,32.55],[35.12,32.46],[34.96,32.44],[34.88,32.44],[34.90,32.60],[34.94,32.69],[34.99,32.82]],
- c:[[34.88,32.44],[34.96,32.44],[35.12,32.46],[35.25,32.55],[35.55,32.50],[35.55,32.20],[35.50,31.95],[35.30,32.00],[35.05,31.95],[34.95,31.78],[34.66,31.82],[34.70,31.93],[34.72,31.99],[34.76,32.08],[34.79,32.17],[34.85,32.33]],
+ h:[[34.99,32.84],[35.12,32.80],[35.22,32.68],[35.25,32.55],[35.12,32.46],[34.96,32.44],[34.88,32.44],[34.90,32.60],[34.94,32.69]],
+ c:[[34.88,32.44],[34.96,32.44],[35.12,32.46],[35.05,32.25],[35.10,32.00],[35.12,31.85],[34.95,31.78],[34.66,31.82],[34.70,31.93],[34.72,31.99],[34.84,31.97],[34.88,32.04],[34.86,32.14],[34.79,32.14],[34.79,32.17],[34.85,32.33]],
  t:[[34.79,32.14],[34.86,32.14],[34.88,32.04],[34.84,31.97],[34.72,31.99],[34.74,32.03],[34.76,32.08]],
- j:[[34.95,31.78],[35.05,31.95],[35.30,32.00],[35.50,31.95],[35.50,31.70],[35.45,31.35],[35.30,31.35],[35.10,31.55],[34.95,31.60]],
+ j:[[35.12,31.85],[34.95,31.78],[34.95,31.60],[35.10,31.55],[35.20,31.68],[35.20,31.80]],
  s:[[34.66,31.82],[34.95,31.78],[34.95,31.60],[35.10,31.55],[35.30,31.35],[35.45,31.35],[35.40,31.10],[35.15,30.80],[35.10,30.30],[35.00,29.80],[34.95,29.55],[34.89,29.55],[34.75,29.95],[34.50,30.45],[34.40,30.87],[34.35,31.05],[34.27,31.22],[34.50,31.34],[34.57,31.52],[34.53,31.60],[34.55,31.66],[34.64,31.80]],
- y:[[35.20,32.52],[35.55,32.50],[35.55,32.20],[35.50,31.95],[35.50,31.70],[35.45,31.35],[35.20,31.40],[35.12,31.55],[35.12,31.75],[35.10,32.00],[35.05,32.25],[35.12,32.42]]};
-const DLAB={n:[35.32,32.97,'צפון'],h:[35.07,32.66,'חיפה'],c:[34.98,32.22,'מרכז'],t:[34.80,32.05,'ת״א'],j:[35.00,31.70,'ירושלים'],s:[34.85,30.75,'דרום'],y:[35.33,32.02,'יהודה ושומרון']};
-let dsel=null,dTried=false,dmode='bloc',dparty=0,dhover=null;
-const dpx=([lo,la])=>[((lo-34.15)*93.5).toFixed(1),((33.35-la)*110).toFixed(1)];
-const dget=code=>LOCS[String(+code)]?.[0];
-const lerp=(a,b,t)=>a.map((x,i)=>Math.round(x+(b[i]-x)*t));
+ y:[[35.25,32.55],[35.55,32.50],[35.55,32.20],[35.50,31.95],[35.50,31.70],[35.45,31.35],[35.30,31.35],[35.10,31.55],[35.20,31.68],[35.20,31.80],[35.12,31.85],[35.10,32.00],[35.05,32.25],[35.12,32.46]]};
+const DANCH={n:{g:[35.32,32.97]},h:{g:[34.60,32.70],t:[35.05,32.66]},c:{g:[35.00,32.26],r:10},t:{g:[34.42,32.04],t:[34.80,32.06],r:10},j:{g:[35.03,31.71],r:9},s:{g:[34.85,30.85]},y:{g:[35.34,32.05]}};
+const DSHORT={n:'צפון',h:'חיפה',c:'מרכז',t:'תל אביב',j:'ירושלים',s:'דרום',y:'יו״ש'};
+let dsel=null,dTried=false,dmode='bloc',dparty=0,dhover=null,dAnimated=false;
+const dpx=([lo,la])=>[+((lo-34.15)*125).toFixed(1),+((33.35-la)*148).toFixed(1)];
+const dget=code=>locOf(code)?.[0];
+const normName=s=>String(s||'').replace(/[^א-תA-Za-z0-9]/g,'');
+let NAMEIDX=null;
+function locOf(code){const l=LOCS[String(+code)];if(l)return l;if(!CT[26]||!CT[26][code])return undefined;if(!NAMEIDX){NAMEIDX={};Object.entries(LOCS).forEach(([c,v])=>{NAMEIDX[normName(v[5])]=c})}const c=NAMEIDX[normName(CT[26][code].name)];return c?LOCS[c]:undefined}
+const SPECIAL=/מעטפ|חייל|אסיר|כלוא|דיפלומט|נוסעי|ספינ|כפול|שגרירו|קלפיות מיוחדות|צה״ל|צה"ל|חוץ לארץ/;
 const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),rgb=c=>`rgb(${c.join(',')})`;
+const lerp=(a,b,t)=>a.map((x,i)=>Math.round(x+(b[i]-x)*t));
+const toRgb=c=>{c=String(c).trim();if(c[0]=='#'){if(c.length==4)c='#'+[1,2,3].map(i=>c[i]+c[i]).join('');return hex(c)}const m=c.match(/\d+/g);return m?m.slice(0,3).map(Number):[136,136,136]};
+const shade=(c,t)=>rgb(lerp(toRgb(c),t>0?[255,255,255]:[0,0,0],Math.abs(t)));
+function unmappedRows(){const rows=[];if(!CT[26])return rows;Object.keys(CT[26]).forEach(c=>{if(LOCS[String(+c)])return;const r=CT[26][c],by=!!locOf(c);rows.push({c,name:r.name,valid:r.valid,type:by?'שויך לפי שם':SPECIAL.test(r.name)?'קולות לא גיאוגרפיים (מיוחדים)':'ללא התאמה',dist:by?(DIST.find(d=>d[0]==dget(c))||[0,''])[1]:''})});return rows.sort((a,b)=>b.valid-a.valid)}
+function unmHtml(){const R=unmappedRows();if(!R.length)return '<small class="mu">✓ כל רשומות קובץ הוועדה שויכו ליישוב בלמ״ס.</small>';
+ const sp=R.filter(r=>r.type.startsWith('קולות')).length,bn=R.filter(r=>r.type=='שויך לפי שם').length,no=R.length-sp-bn,tv=sum(Object.values(CT[26]).map(r=>r.valid)),uv=sum(R.filter(r=>r.type!='שויך לפי שם').map(r=>r.valid));
+ return `<details style="margin-top:10px"><summary><b>${nf(R.length)} רשומות בקובץ הוועדה ללא סמל בלמ״ס</b> · ${nf(sp)} לא גיאוגרפיות · ${nf(bn)} שויכו לפי שם · ${nf(no)} ללא התאמה · ${f1(uv/tv*100)}% מהקולות לא שויכו</summary><div class="wrap"><table><tr><th>סמל</th><th>שם</th><th>קולות כשרים</th><th>סיווג</th></tr>${R.slice(0,300).map(r=>`<tr><td>${esc(r.c)}</td><td>${esc(r.name)}</td><td>${nf(r.valid)}</td><td>${r.type}${r.dist?' · '+r.dist:''}</td></tr>`).join('')}</table></div><button class="s" data-dl="1" style="margin-top:6px">⬇️ הורדת הרשימה (CSV)</button></details>`}
+function dlUnm(){const R=unmappedRows(),csv='\uFEFFסמל,שם,קולות כשרים 2026,סיווג,מחוז\n'+R.map(r=>[r.c,'"'+String(r.name).replace(/"/g,'""')+'"',r.valid,r.type,r.dist].join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='unmapped_localities.csv';document.body.appendChild(a);a.click();a.remove()}
+function covText(){if(!CT[26])return '';let t=0,m=0;Object.keys(CT[26]).forEach(c=>{const v=CT[26][c].valid;t+=v;if(dget(c))m+=v});return t?` · ${f1(m/t*100)}% מהקולות הכשרים שויכו למחוז`:''}
+function kpiHtml(st){const L=DIST.map(d=>st[d[0]]).filter(x=>x&&x.a&&x.turn!=null);if(!L.length)return '';const hi=L.reduce((a,b)=>b.turn>a.turn?b:a),lo=L.reduce((a,b)=>b.turn<a.turn?b:a),lead=[0,0,0,0];L.forEach(x=>lead[x.b.indexOf(Math.max(...x.b))]++);
+ const k=(t,v,s)=>`<div class="kpi"><small>${t}</small><b>${v}</b><small>${s}</small></div>`;
+ return k('הצבעה גבוהה ביותר',f1(hi.turn)+'%',hi.nm.replace('מחוז ',''))+k('הצבעה נמוכה ביותר',f1(lo.turn)+'%',lo.nm.replace('מחוז ',''))+k('גוש מוביל במחוזות',lead.map((n,i)=>n?`<span style="color:${BC[i]}">●</span> ${n}`:'').filter(Boolean).join(' '),lead.map((n,i)=>n?BLS[i]+' '+n:'').filter(Boolean).join(' · '))}
+(function(){if(typeof Element==='undefined')return;const d=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');['dmapwrap','dkpi','dunm','dout','dcmp','drank','dinfo','dlegend','cthemi'].forEach(id=>{const el=$(id);if(!el)return;Object.defineProperty(el,'innerHTML',{configurable:true,get(){return d.get.call(this)},set(v){if(this.__h===v)return;this.__h=v;d.set.call(this,v)}})})})();
 function distAgg(y,key){if(!CT[26])return null;const t={name:'',bzb:0,voters:0,invalid:0,valid:0,v:{}};let n=0;
  Object.keys(CT[26]).forEach(code=>{if(dget(code)!==key)return;const r=ctRec(code,y);if(!r)return;n++;['bzb','voters','invalid','valid'].forEach(k=>t[k]+=r[k]);Object.entries(r.v).forEach(([k,x])=>t.v[k]=(t.v[k]||0)+x)});return n?{...t,n}:null}
-function distDem(key){if(!CT[26])return null;let pop=0,ar=0,jo=0,any=false;Object.keys(CT[26]).forEach(c=>{if(dget(c)===key){const l=LOCS[String(+c)];pop+=l[1];jo+=l[2];ar+=l[3];any=true}});return any?{pop,jo,ar}:null}
+function distDem(key){if(!CT[26])return null;let pop=0,ar=0,jo=0,any=false;Object.keys(CT[26]).forEach(c=>{if(dget(c)===key){const l=locOf(c);pop+=l[1];jo+=l[2];ar+=l[3];any=true}});return any?{pop,jo,ar}:null}
 function distStats(){const o={};DIST.forEach(([k,nm])=>{const a=distAgg(26,k);if(!a){o[k]={k,nm,a:null};return}
  const s=seatsFor(a),b=s?blocSum(s).map(x=>x[1]):[0,0,0,0],turn=a.bzb?a.voters/a.bzb*100:null,pv=P.map((_,i)=>Object.entries(a.v).filter(([kk])=>L26[kk]==i).reduce((t,[,y])=>t+y,0));
  const lead=pv.indexOf(Math.max(...pv));o[k]={k,nm,a,s,b,turn,lead,pv,dem:distDem(k)}});return o}
+function arcCircle(cx,cy,r,w,vals,cols){const tot=sum(vals)||1,C=2*Math.PI*r;let off=0;return vals.map((v,i)=>{if(!v)return '';const len=v/tot*C,s=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${cols[i]}" stroke-width="${w}" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"/>`;off+=len;return s}).join('')}
 function mapSvg(st,mode,pi){
- const have=DIST.map(d=>st[d[0]]).filter(x=>x&&x.a);
- let colorOf=()=>['#9aa3b2',1],labOf=()=>'';
- if(mode=='bloc'){colorOf=x=>{const m=Math.max(...x.b),i=x.b.indexOf(m);return[BC[i],.55+.45*Math.min(1,m/120*1.6)]};labOf=x=>{const m=Math.max(...x.b);return BLS[x.b.indexOf(m)]+' '+m}}
- else if(mode=='turn'){const t=have.map(x=>x.turn).filter(v=>v!=null),mn=Math.min(...t),mx=Math.max(...t);colorOf=x=>[rgb(lerp(hex('#dbeafe'),hex('#1d4ed8'),mx>mn?(x.turn-mn)/(mx-mn):.5)),1];labOf=x=>x.turn!=null?f1(x.turn)+'%':''}
- else{const sh=have.map(x=>x.a.valid?x.pv[pi]/x.a.valid*100:0),mx=Math.max(...sh,.1),c=hex((BADGE[P[pi].n]||['#2563c9'])[0]);colorOf=x=>[rgb(lerp(hex('#f1f5f9'),c,x.a.valid?(x.pv[pi]/x.a.valid*100)/mx:0)),1];labOf=x=>f1(x.a.valid?x.pv[pi]/x.a.valid*100:0)+'%'}
- return `<svg viewBox="0 0 165 425" role="img" aria-label="מפת מחוזות">`+['s','j','c','n','h','t','y'].map(k=>{const x=st[k],[col,op]=x&&x.a?colorOf(x):['#c3c9d3',.6],sel=dsel==k;return `<path data-d="${k}" d="M${DPOLY[k].map(p=>dpx(p).join(',')).join('L')}Z" fill="${col}" opacity="${dsel&&!sel?Math.min(op,.5):op}" ${sel?'style="stroke:var(--tx);stroke-width:2.2"':''}><title>${DIST.find(d=>d[0]==k)[1]}</title></path>`}).join('')+
- Object.entries(DLAB).map(([k,[lo,la,t]])=>{const[xx,yy]=dpx([lo,la]),x=st[k],v=x&&x.a?labOf(x):'';return `<text x="${xx}" y="${yy}" text-anchor="middle" font-size="${k=='t'?7:k=='y'?8:10}" font-weight="700" fill="#10151c" style="pointer-events:none;paint-order:stroke;stroke:rgba(255,255,255,.65);stroke-width:2px">${t}</text>`+(v?`<text x="${xx}" y="${(+yy+10).toFixed(1)}" text-anchor="middle" font-size="7.5" fill="#10151c" style="pointer-events:none;paint-order:stroke;stroke:rgba(255,255,255,.65);stroke-width:2px">${v}</text>`:'')}).join('')+`</svg>`}
+ const have=DIST.map(d=>st[d[0]]).filter(x=>x&&x.a),BCS=[0,1,2,3].map(i=>BC[i]);
+ let colorOf=()=>'#9aa3b2',labOf=()=>'',glyphOf=()=>'';
+ if(mode=='bloc'){colorOf=x=>{const m=Math.max(...x.b);return shade(BC[x.b.indexOf(m)],(1-Math.min(1,m/120*1.7))*.35)};labOf=x=>{const m=Math.max(...x.b);return BLS[x.b.indexOf(m)]+' '+m};
+  glyphOf=(x,cx,cy,r)=>arcCircle(cx,cy,r-2.5,5,x.b,BCS)+`<text x="${cx}" y="${cy+2.6}" text-anchor="middle" font-size="7.5" font-weight="800" style="fill:var(--tx)">${Math.max(...x.b)}</text>`}
+ else if(mode=='turn'){const t=have.map(x=>x.turn).filter(v=>v!=null),mn=Math.min(...t),mx=Math.max(...t),fr=x=>mx>mn?(x.turn-mn)/(mx-mn):.5;
+  colorOf=x=>rgb(lerp(hex('#dbeafe'),hex('#1d4ed8'),fr(x)));labOf=x=>x.turn!=null?f1(x.turn)+'%':'';
+  glyphOf=(x,cx,cy,r)=>`<circle cx="${cx}" cy="${cy}" r="${r-2.5}" fill="none" style="stroke:var(--bd)" stroke-width="5"/>`+arcCircle(cx,cy,r-2.5,5,[x.turn||0,100-(x.turn||0)],['#1d4ed8','transparent'])+`<text x="${cx}" y="${cy+2.4}" text-anchor="middle" font-size="6.6" font-weight="800" style="fill:var(--tx)">${x.turn!=null?Math.round(x.turn)+'%':''}</text>`}
+ else{const sh=x=>x.a.valid?x.pv[pi]/x.a.valid*100:0,mx=Math.max(...have.map(sh),.1),pc=(BADGE[P[pi].n]||['#2563c9'])[0];
+  colorOf=x=>rgb(lerp(hex('#f1f5f9'),toRgb(pc),sh(x)/mx));labOf=x=>f1(sh(x))+'%';
+  glyphOf=(x,cx,cy,r)=>`<circle cx="${cx}" cy="${cy}" r="${r-2.5}" fill="none" style="stroke:var(--bd)" stroke-width="5"/>`+arcCircle(cx,cy,r-2.5,5,[sh(x)/mx*88,100-sh(x)/mx*88],[pc,'transparent'])+`<text x="${cx}" y="${cy+2.4}" text-anchor="middle" font-size="6.6" font-weight="800" style="fill:var(--tx)">${Math.round(sh(x))}%</text>`}
+ const pth=k=>'M'+DPOLY[k].map(p=>dpx(p).join(',')).join('L')+'Z',anim=!dAnimated;if(have.length)dAnimated=true;
+ let defs='<defs><linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sea1)"/><stop offset="1" style="stop-color:var(--sea2)"/></linearGradient>';
+ DIST.forEach(([k])=>{const x=st[k],base=x&&x.a?colorOf(x):'#c3c9d3';defs+=`<linearGradient id="gd-${k}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${shade(base,.3)}"/><stop offset="1" stop-color="${shade(base,-.1)}"/></linearGradient>`});defs+='</defs>';
+ let bg='<rect x="-10" y="-8" width="235" height="585" rx="18" fill="url(#sea)"/>';
+ [30,31,32,33].forEach(la=>{const y=dpx([34,la])[1];bg+=`<line x1="-10" y1="${y}" x2="225" y2="${y}" style="stroke:var(--tx)" stroke-width=".4" opacity=".1"/><text x="-6" y="${y-2}" font-size="5.5" style="fill:var(--tx)" opacity=".35">${la}°N</text>`});
+ [34.5,35,35.5].forEach(lo=>{const x=dpx([lo,33])[0];bg+=`<line x1="${x}" y1="-8" x2="${x}" y2="577" style="stroke:var(--tx)" stroke-width=".4" opacity=".1"/><text x="${x+1.5}" y="573" font-size="5.5" style="fill:var(--tx)" opacity=".35">${lo}°E</text>`});
+ bg+='<text transform="rotate(-90 14 330)" x="14" y="330" font-size="9" letter-spacing="4" style="fill:var(--tx)" opacity=".22" text-anchor="middle">הים התיכון</text>';
+ const shadow=`<g style="filter:blur(2.4px)" opacity=".3" transform="translate(1.5 3.5)">${Object.keys(DPOLY).map(k=>`<path d="${pth(k)}" fill="#0b1d33"/>`).join('')}</g>`;
+ const idx={n:0,h:1,c:2,t:3,j:4,s:5,y:6};
+ const groups=['s','j','c','n','h','t','y'].map(k=>{const x=st[k],a=x&&x.a,sel=dsel==k,nm=DIST.find(d=>d[0]==k)[1],A=DANCH[k],r=A.r||12,[gx,gy]=dpx(A.g);let gl='';
+  if(a){const lead=A.t?(()=>{const[tx,ty]=dpx(A.t);return `<line x1="${gx}" y1="${gy}" x2="${tx}" y2="${ty}" style="stroke:var(--tx)" stroke-width=".7" stroke-dasharray="2 2" opacity=".5"/><circle cx="${tx}" cy="${ty}" r="1.6" style="fill:var(--tx)"/>`})():'';
+   gl=lead+(sel?`<circle class="pulse" cx="${gx}" cy="${gy}" r="${r}" fill="none" style="stroke:var(--ac)" stroke-width="1.6"/>`:'')+`<circle cx="${gx}" cy="${gy}" r="${r}" style="fill:var(--card);stroke:rgba(0,0,0,.14)" stroke-width=".8" opacity=".95"/>`+glyphOf(x,gx,gy,r)+
+   `<text x="${gx}" y="${gy+r+8.5}" text-anchor="middle" font-size="8.5" font-weight="800" style="fill:var(--tx);paint-order:stroke;stroke:var(--card);stroke-width:2.4px;stroke-linejoin:round">${DSHORT[k]}</text><text x="${gx}" y="${gy+r+16.8}" text-anchor="middle" font-size="7" style="fill:var(--mu);paint-order:stroke;stroke:var(--card);stroke-width:2.2px;stroke-linejoin:round">${labOf(x)}</text>`}
+  return `<g class="dg${anim?' a':''}${sel?' sel':''}" data-d="${k}" tabindex="0" role="button" aria-label="${nm}" style="--i:${idx[k]}${dsel&&!sel?';opacity:.66':''}"><path d="${pth(k)}" fill="url(#gd-${k})"/><path d="${pth(k)}" fill="none" stroke="rgba(255,255,255,.92)" stroke-width="${sel?2.4:1.3}" stroke-linejoin="round" ${sel?'style="stroke:var(--tx)"':''}/>${gl}</g>`}).join('');
+ return `<svg viewBox="-10 -8 235 585" class="dsvg" role="group" aria-label="מפת מחוזות ישראל">${defs}${bg}${shadow}${groups}</svg>`}
 function infoOf(x){if(!x||!x.a)return 'אין נתונים למחוז';return `<b>${esc(x.nm)}</b> · ${x.dem?nf(x.dem.pop)+' תושבים · ':''}${x.dem&&x.dem.pop?f1(x.dem.ar/x.dem.pop*100)+'% ערבים · ':''}${nf(x.a.n)} יישובים · ${nf(x.a.valid)} קולות כשרים · הצבעה ${x.turn!=null?f1(x.turn)+'%':'–'} · מוביל: ${B(P[x.lead])}${P[x.lead].n} ${f1(x.a.valid?x.pv[x.lead]/x.a.valid*100:0)}%`}
 function distTable(r,s){const rows=[];let named=0;P.forEach((p,i)=>{const x=Object.entries(r.v).filter(([k])=>L26[k]==i).reduce((a,[,b])=>a+b,0);if(x>0){named+=x;rows.push([B(p)+p.n,x,s?s[i]:null])}});
  (s&&s.extras||[]).forEach(e=>rows.push(['רשימה ״'+esc(e.k)+'״',e.votes,e.seats,true]));rows.sort((a,b)=>b[1]-a[1]);const oth=r.valid-named-(s&&s.extras?sum(s.extras.map(e=>e.votes)):0);
@@ -669,9 +713,9 @@ function renderDist(){
  const box=$('dmapwrap');if(!box)return;
  if(CLOUD&&!CT[26]&&!ctLoading&&!dTried){dTried=true;loadCT()}
  const nmap=Object.keys(LOCS).length,have=!!CT[26];
- $('dmst').textContent=!CLOUD?'זמין רק במצב ענן.':!CT[26]?'טוען את נתוני היישובים… (אם לא נטענו, לחצו על ״טעינת נתוני היישובים״ בכרטיס היישובים).':`החלוקה לפי הלמ״ס, 7 מחוזות · ${nf(nmap)} יישובים בקובץ. לחצו על מחוז, או על שורה בהשוואה.`;
+ $('dmst').textContent=!CLOUD?'זמין רק במצב ענן.':!CT[26]?'טוען את נתוני היישובים… (אם לא נטענו, לחצו על ״טעינת נתוני היישובים״ בכרטיס היישובים).':`החלוקה לפי הלמ״ס, 7 מחוזות · ${nf(nmap)} יישובים בקובץ${covText()}. לחצו על מחוז, או על שורה בהשוואה.`;
  const st=have?distStats():{};
- box.innerHTML=mapSvg(st,dmode,dparty);
+ box.innerHTML=mapSvg(st,dmode,dparty);$('dkpi').innerHTML=have?kpiHtml(st):'';$('dunm').innerHTML=have?unmHtml():'';
  $('dlegend').innerHTML=!have?'':dmode=='bloc'?legend():`<div class="dgrad"><span>נמוך</span><i></i><span>גבוה</span></div>`;
  $('dinfo').innerHTML=!have?'':infoOf(st[dhover||dsel])||'העבירו עכבר או לחצו על מחוז';
  if(!have){$('drank').innerHTML='';$('dout').innerHTML='';$('dcmpcard').hidden=true;return}
@@ -680,12 +724,14 @@ function renderDist(){
  const x=st[dsel];if(!x||!x.a){$('dout').innerHTML=`<span class="mu">אין יישובים משויכים למחוז זה.</span>`;$('dcmpcard').hidden=true;return}
  const nm=x.nm,a=x.a,s=x.s,unm=Object.keys(CT[26]).filter(c=>!dget(c)).length;
  const tops=Object.keys(CT[26]).filter(c=>dget(c)===dsel).map(c=>CT[26][c]).sort((p,q)=>q.valid-p.valid).slice(0,6).map(r=>{let li=-1,lv=0;Object.entries(r.v).forEach(([k,y])=>{if(k in L26&&y>lv){lv=y;li=L26[k]}});return `<tr><td>${esc(r.name)}</td><td>${nf(r.valid)}</td><td>${li>=0?B(P[li])+P[li].n+' '+f1(lv/r.valid*100)+'%':'–'}</td></tr>`}).join('');
- $('dout').innerHTML=`<h3>${esc(nm)}</h3><small>${x.dem?nf(x.dem.pop)+' תושבים (ערבים '+f1(x.dem.ar/x.dem.pop*100)+'% · יהודים ואחרים '+f1(x.dem.jo/x.dem.pop*100)+'%) · ':''}${nf(a.n)} יישובים · ${nf(a.valid)} קולות כשרים${x.dem&&x.dem.pop?` (${f1(a.valid/x.dem.pop*100)}% מהאוכלוסייה)`:''} · אחוז הצבעה ${x.turn!=null?f1(x.turn)+'%':'–'}${unm?` · ${nf(unm)} יישובים בקובץ הארצי ללא שיוך (לא נספרו)`:''}</small>`+distTable(a,s)+(s?`${hemiSvg(s)}${hemiLegend(s)}<h3 style="margin-top:8px;font-size:.9rem">מנדטים לפי גוש</h3>${blocHtml(s)}${hemiNote(s)}`:'')+`<h3 style="margin-top:10px;font-size:.9rem">היישובים הגדולים במחוז</h3><div class="wrap"><table><tr><th>יישוב</th><th>קולות כשרים</th><th>מפלגה מובילה</th></tr>${tops}</table></div>`+(unm?`<details style="margin-top:8px"><summary>${nf(unm)} רשומות בקובץ הוועדה ללא שיוך ללמ״ס (לא נספרו)</summary><small>${Object.keys(CT[26]).filter(c=>!dget(c)).map(c=>CT[26][c]).sort((p,q)=>q.valid-p.valid).slice(0,12).map(r=>esc(r.name)+' ('+nf(r.valid)+')').join(' · ')}</small></details>`:'');
+ $('dout').innerHTML=`<h3>${esc(nm)}</h3><small>${x.dem?nf(x.dem.pop)+' תושבים (ערבים '+f1(x.dem.ar/x.dem.pop*100)+'% · יהודים ואחרים '+f1(x.dem.jo/x.dem.pop*100)+'%) · ':''}${nf(a.n)} יישובים · ${nf(a.valid)} קולות כשרים${x.dem&&x.dem.pop?` (${f1(a.valid/x.dem.pop*100)}% מהאוכלוסייה)`:''} · אחוז הצבעה ${x.turn!=null?f1(x.turn)+'%':'–'}</small>`+distTable(a,s)+(s?`${hemiSvg(s)}${hemiLegend(s)}<h3 style="margin-top:8px;font-size:.9rem">מנדטים לפי גוש</h3>${blocHtml(s)}${hemiNote(s)}`:'')+`<h3 style="margin-top:10px;font-size:.9rem">היישובים הגדולים במחוז</h3><div class="wrap"><table><tr><th>יישוב</th><th>קולות כשרים</th><th>מפלגה מובילה</th></tr>${tops}</table></div>`;
  $('dcmpcard').hidden=false;$('dcmp').innerHTML=cmpBox(nm,a,distAgg(25,dsel))}
 $('dparty').innerHTML=P.map((p,i)=>`<option value="${i}">${p.n}</option>`).join('');
 $('dparty').onchange=()=>{dparty=+$('dparty').value;dmode='party';syncDm();renderDist()};
 function syncDm(){document.querySelectorAll('[data-dm]').forEach(b=>b.classList.toggle('on',b.dataset.dm==dmode))}
 document.querySelectorAll('[data-dm]').forEach(b=>b.onclick=()=>{dmode=b.dataset.dm;syncDm();renderDist()});
+$('dunm').onclick=e=>{if(e.target.closest('[data-dl]'))dlUnm()};
+$('dmapwrap').onkeydown=e=>{const p=e.target.closest('[data-d]');if(p&&(e.key=='Enter'||e.key==' ')){e.preventDefault();dsel=p.dataset.d;renderDist()}};
 $('dmapwrap').onclick=e=>{const p=e.target.closest('[data-d]');if(p){dsel=p.dataset.d;renderDist()}};
 $('dmapwrap').onmouseover=e=>{const p=e.target.closest('[data-d]');if(p&&dhover!==p.dataset.d){dhover=p.dataset.d;renderDistInfo()}};
 $('dmapwrap').onmouseleave=()=>{dhover=null;renderDistInfo()};
