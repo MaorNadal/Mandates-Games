@@ -131,6 +131,10 @@ details{margin-top:6px}summary{cursor:pointer}
 <div id="plist" style="margin:6px 0"></div><button class="s" id="calcrst" hidden>↺ חזרה לנתוני המנהל</button><div id="xseatout"></div><button class="b" id="xcopy" hidden>⬇️ העבר חלוקה זו לתוצאות האמת (מנהל)</button></div>
 <div class="card"><h3>📈 מד הפתעות: תוצאות מול חציון הסקרים</h3><div id="xsurp"></div></div>
 <div class="card"><h3>🔁 השוואה לבחירות 2022</h3><div id="x22"></div></div>
+<div class="card" id="xadmcard" hidden><h3>🔧 נתוני מנהל</h3><p class="mu">הנתונים נשמרים בענן ומוצגים לכולם.</p><div id="xadm"></div></div>
+<div class="card" id="savebar" hidden><h3>💾 שמירת נתוני מנהל</h3><button class="b" id="savebtn">💾 שמירה</button> <span id="savest"></span></div>
+</section>
+<section id="f" hidden>
 <div class="card"><h3>🏙️ תוצאות לפי יישובים: 2026 מול 2022</h3><p class="mu">הנתונים נטענים מאתר ועדת הבחירות. בחרו יישוב, ואפשר גם יישוב נוסף (או ״כל הארץ״) להשוואה.</p>
 <datalist id="ctlist"></datalist>
 <label style="display:block;margin-top:6px">יישוב<input id="cta" list="ctlist" placeholder="הקלידו שם יישוב" autocomplete="off" style="width:100%;box-sizing:border-box"></label><label style="display:block;margin-top:6px">השוואה מול (רשות)<input id="ctb" list="ctlist" placeholder="יישוב נוסף או ״כל הארץ״" autocomplete="off" style="width:100%;box-sizing:border-box"></label>
@@ -145,8 +149,6 @@ details{margin-top:6px}summary{cursor:pointer}
 <div><div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap"><h3 style="font-size:.95rem;margin:0">השוואת המחוזות</h3><select id="drmode"><option value="seats">מנדטים לפי גוש</option><option value="votes">קולות לפי גוש (%)</option></select></div><div id="drank"></div></div></div>
 <div id="dout" style="margin-top:10px"></div><div id="dunm"></div></div>
 <div class="card" id="dcmpcard" hidden><h3>🔁 המחוז שנבחר: 2026 מול 2022</h3><div id="dcmp"></div></div>
-<div class="card" id="xadmcard" hidden><h3>🔧 נתוני מנהל</h3><p class="mu">הנתונים נשמרים בענן ומוצגים לכולם.</p><div id="xadm"></div></div>
-<div class="card" id="savebar" hidden><h3>💾 שמירת נתוני מנהל</h3><button class="b" id="savebtn">💾 שמירה</button> <span id="savest"></span></div>
 </section>
 
 <nav>
@@ -155,8 +157,10 @@ details{margin-top:6px}summary{cursor:pointer}
 <button data-t="d"><span>🔍</span>השוואה</button>
 <button data-t="c"><span>🏆</span>תוצאות</button>
 <button data-t="e"><span>🏛️</span>כנסת</button>
+<button data-t="f"><span>🗺️</span>מפה</button>
 </nav>
 
+<div id="dpop" class="dpop" hidden role="dialog" aria-modal="true"><div class="dpopc"><button id="dpopx" aria-label="סגירה">✕</button><div id="dpopb"></div></div></div>
 <script>
 const PN=['כאן','12','13','14','i24'];
 const P=[
@@ -227,7 +231,7 @@ $('ratios').innerHTML=turnCard+P.map(p=>{
 
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x==b));
- ['a','b','c','d','e'].forEach(t=>$(t).hidden=t!=b.dataset.t);window.scrollTo(0,0);if(b.dataset.t=='e')loadCT()});
+ ['a','b','c','d','e','f'].forEach(t=>$(t).hidden=t!=b.dataset.t);window.scrollTo(0,0);if(b.dataset.t=='e'||b.dataset.t=='f')loadCT()});
 
 $('gi').innerHTML=P.map((p,i)=>`<div class="pr"><label for="g${i}">${B(p)}<b>${p.n}</b></label><input type="number" inputmode="numeric" min="0" max="120" id="g${i}" value="${p.c}"><div class="h" id="h${i}"></div></div>`).join('')+`<div class="pr"><label for="gt"><b>🗳️ אחוז הצבעה צפוי (%)</b></label><input type="number" step="0.1" min="0" max="100" id="gt" value="${TO.c}"><div class="h" id="ht"></div></div>`;
 function hints(){
@@ -788,5 +792,5 @@ if(CLOUD){let sp='';try{sp=sessionStorage.getItem('mgadm')||''}catch(e){}
  pull();setInterval(()=>{if(!document.hidden)pull()},8000)}
 else $('conn').textContent='מצב מקומי (ללא ענן)';
 </script>
-<div id="dpop" class="dpop" hidden role="dialog" aria-modal="true"><div class="dpopc"><button id="dpopx" aria-label="סגירה">✕</button><div id="dpopb"></div></div></div></body>
+</body>
 </html>
